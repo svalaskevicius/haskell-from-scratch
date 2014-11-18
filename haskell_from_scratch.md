@@ -139,11 +139,12 @@ Note: indentation matters.
 
 # Type classes 
 
----
+## What's a type class?
 
 - similar to interfaces/abstract classes in OO
 - can have default implementation
 
+---
         class  (Eq a) => Ord a  where
             compare              :: a -> a -> Ordering
             (<), (<=), (>), (>=) :: a -> a -> Bool
@@ -162,10 +163,20 @@ Note: indentation matters.
             min x y = if x <= y then x else y
 
 - choose which function to implement - `compare` or `(<=)`
-- usage in functions
 
-        sort :: Ord a => [a] -> [a] 
+## Deriving a type class
 
+    data MyType = MyType Int deriving Eq
+
+    instance Ord MyType where
+        (MyType a) <= (MyType b) = a <= b
+
+*(in this case, simply `deriving (Eq, Ord)` would also have worked)*
+
+## Usage in functions
+
+    findLowerThan :: Ord a => a -> [a] -> [a] 
+    findLowerThan measure = filter (< measure)
 
 # Functional composition 
 

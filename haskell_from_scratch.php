@@ -42,7 +42,7 @@
 		<div class="reveal">
 
 			<div class="slides">
-                ##SLIDE_CONTENTS##
+                <?php include "./.contents.html" ?>
 			</div>
 
 		</div>

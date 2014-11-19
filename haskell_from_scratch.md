@@ -182,10 +182,43 @@ Note: indentation matters.
 
 ## Higher order functions 
 
-  Maps and folds are very common in functional paradigm. 
+Wikipedia: *In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
+
+- *takes one or more functions as an input*
+- *outputs a function*
+
+For example, map and fold (reduce) are very common in functional paradigm. 
 
 ## Functors 
 
+- functor allows mapping over them
+- definition:
+
+        class Functor f where
+          fmap :: (a -> b) -> f a -> f b
+
+- laws:
+
+        fmap id      = id
+        fmap (p . q) = (fmap p) . (fmap q)
+
+
+## Example
+
+    
+    numbers = [1..10]
+    strings = fmap show numbers
+    -- ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+
+    notSureIfNumber = Just 9
+    notSureIfString = fmap show notSureIfNumber
+    -- Just "9"
+
+    notSureIfNumber = Nothing
+    notSureIfString = fmap show notSureIfNumber
+    -- Nothing
+
+ 
 ## Applicative functors 
 
 ## Monoids

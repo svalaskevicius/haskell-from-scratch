@@ -2,7 +2,7 @@
 % Sarunas Valaskevicius
 % November 22, 2014
 
-# Functional programming 
+# Functional programming
 
 ## What is it?
 
@@ -21,7 +21,7 @@
 ## You've used functional elements already
 - map, reduce;
 - closures;
-- promise pattern in javascript.. 
+- promise pattern in javascript..
 
 # About haskell
 
@@ -43,17 +43,17 @@ Serverside:
 
 ## Purity and referential transparency
 - function with no side effects is pure
-- this property is called referential transparency 
+- this property is called referential transparency
 - it allows equational reasoning:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 y = f x
 g = h y y
-    => 
+    =>
 g = h (f x) (f x)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- *all* functions in haskell are pure 
+- *all* functions in haskell are pure
 
 
 ## "No side effects"
@@ -63,7 +63,7 @@ g = h (f x) (f x)
 
 
 ## Laziness
-- most programming languages use eager evaluation 
+- most programming languages use eager evaluation
 - but some start to implement lazy *generators*
 - haskell is **lazy**: it will only compute a value when its actually used
 - problematic in microcontroller space
@@ -76,7 +76,7 @@ print10 = printN 10
 
 print10 [1..]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
 ## Strong typing
 - algebraic data types
 - uses Hindley-Milner type inference
@@ -90,8 +90,8 @@ print10 [1..]
     - we only require to be able to compare two variables of type `a`
     - the same type a has to be passed to the 1st and 2nd params
 
-## Pattern matching 
-- powerful alternative for many `if` statements 
+## Pattern matching
+- powerful alternative for many `if` statements
 - functions are written in declarative manner
 - destructuring matches
 
@@ -108,17 +108,17 @@ print10 [1..]
     f :: a -> b -> c
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `f 3` has type `(b -> c)`, which is a function itself. 
+- `f 3` has type `(b -> c)`, which is a function itself.
 
 ## Asynchronous
 - GHC uses green threads (implemented in the VM)
     - events based execution - doesn't block the process
-    - all that is abstracted underneath the language 
-- green threads can be executed by any amount of OS threads, specified at compile time 
+    - all that is abstracted underneath the language
+- green threads can be executed by any amount of OS threads, specified at compile time
 
 ## Modules
-- export closely related functions 
-- hide private implementation 
+- export closely related functions
+- hide private implementation
 - conceptually similar to module pattern in javascript
 
         Data.List
@@ -129,26 +129,26 @@ print10 [1..]
 
 # Ecosystem
 
-## Compiler choices 
+## Compiler choices
 
-- **ghc** is the current preference, has multiple backends (native, llvm, c) 
-- **jhc** performs whole program optimisation 
-- ... 
+- **ghc** is the current preference, has multiple backends (native, llvm, c)
+- **jhc** performs whole program optimisation
+- ...
 
 ## ghci (repl)
 
 - check quickly before coding
 
-## Packaging 
+## Packaging
 
-- **cabal** - dependency manager and more 
-- **hackage** - repository for haskell packages 
-- **hoogle** - function search engine 
+- **cabal** - dependency manager and more
+- **hackage** - repository for haskell packages
+- **hoogle** - function search engine
 - **hayoo** - another search engine
 
-## TDD tools 
+## TDD tools
 
-- **quickcheck** - randomised testing framework for predefined properties 
+- **quickcheck** - randomised testing framework for predefined properties
 - **hspec** - tdd support tool
 
 # Generic language constructs
@@ -169,7 +169,7 @@ type Deck = [Card]
 
 Defines a type alias. The data can still be accessed using the original type.
 
-## Newtype 
+## Newtype
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 newtype Deck = Deck [Card]
@@ -229,7 +229,7 @@ myFunction = do
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 main :: IO()
-main = putStrLn "hello world" 
+main = putStrLn "hello world"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## The "do" notation
@@ -246,7 +246,7 @@ main = do
 
 Note: indentation matters.
 
-# Type system 
+# Type system
 
 ## What's a type class?
 
@@ -290,7 +290,7 @@ instance Ord MyType where
 ## Usage in functions
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-findLowerThan :: Ord a => a -> [a] -> [a] 
+findLowerThan :: Ord a => a -> [a] -> [a]
 findLowerThan measure = filter (< measure)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -356,14 +356,14 @@ Just (Sum 10) <> Nothing <> Just (Sum 5)
 --    Just (Sum{getSum = 15})
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## Higher order functions 
+## Higher order functions
 
 Wikipedia: *"In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
 
 - *takes one or more functions as an input*
 - *outputs a function"*
 
-For example, map and fold (reduce) are very common in functional paradigm. 
+For example, map and fold (reduce) are very common in functional paradigm.
 
 ## Boxes and computation context
 
@@ -381,7 +381,7 @@ myFunction :: f a -> f a
 - `f` is a variable "box" where we don't specify its type
 - the only property specified in the function definition is that the type has to have a type parameter
 
-## Functors 
+## Functors
 
 - functor allows mapping over them
 - definition:
@@ -422,8 +422,8 @@ notSureIfString = fmap show notSureIfNumber
 -- Nothing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- 
-## Applicative functors 
+
+## Applicative functors
 
 - applicative functor is a functor accepting wrapped functions
 - it's definition:
@@ -445,7 +445,7 @@ notSureIfString = fmap show notSureIfNumber
 </div>
 
 ## Applicative functor example
- 
+
 - apply a "boxed" function to a "boxed" value:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -469,7 +469,7 @@ notSureIfString = fmap show notSureIfNumber
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-## Monads 
+## Monads
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 class  Monad m  where
@@ -494,7 +494,7 @@ class  Monad m  where
 - associativity:
     - `m >>= (\x -> k x >>= h)`  =  `(m >>= k) >>= h`
 
-## Maybe monad 
+## Maybe monad
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 Just 1 >>= (\a -> return $ a+1)  -- or just "Just 1 >>= return . (+1)"
@@ -513,7 +513,7 @@ computation = do
     return $ a + 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## IO monad 
+## IO monad
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 echo :: IO ()
@@ -524,13 +524,13 @@ echo = getLine >>= putStrLn
 
 ## Books to read
 
-- learn you a haskell for great good 
-- real world haskell 
+- learn you a haskell for great good
+- real world haskell
 - ...
 
 ## lenses
 ## monad transformers
-## extensible effects 
+## extensible effects
 ## free monads
 ## category theory
 

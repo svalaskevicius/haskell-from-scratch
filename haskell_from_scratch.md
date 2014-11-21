@@ -23,12 +23,13 @@
 - closures;
 - promise pattern in javascript.. 
 
-# Haskell. What is it? 
+# About haskell
 
 ## Generic programming language
 
 - desktop applications
 - server side software
+- known to be especially good at DSLs
 
 <div class="notes">
 Many examples for *desktop* include:
@@ -63,13 +64,16 @@ g = h (f x) (f x)
 
 ## Laziness
 - most programming languages use eager evaluation 
+- but some start to implement lazy *generators*
 - haskell is **lazy**: it will only compute a value when its actually used
 - problematic in microcontroller space
 - very convenient in generic programming - allows infinite computation definitions:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 printN n =  putStrLn . (intercalate " ") . (map show) . (take n)
+
 print10 = printN 10
+
 print10 [1..]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
@@ -146,6 +150,78 @@ print10 [1..]
 
 - **quickcheck** - randomised testing framework for predefined properties 
 - **hspec** - tdd support tool
+
+# Generic language constructs
+
+## Defining data types
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+data MyType = MyIntType Int | MyEmptyType | MyStringType String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines a new type `MyType` and provides three data constructors.
+
+## Type alias
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+type Deck = [Card]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines a type alias. The data can still be accessed using the original type.
+
+## Newtype 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+newtype Deck = Deck [Card]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A combination of `data` and `type` - the usage of the resulting type is
+that of a `data` type, however the runtime is of a type alias.
+
+## Function declaration
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+myFunction :: Type
+myFunction arguments = body
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines a new function available within the module.
+
+## Let .. in
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+myFunction :: Int
+myFunction = let x = 1
+             in x + 1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Where
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+myFunction :: Int
+myFunction = increasedX
+    where x = 1
+          increasedX = x + 1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Do notation
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+myFunction :: IO Int
+myFunction = do
+    otherFunction
+    return 1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Let inside do
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+myFunction :: IO Int
+myFunction = do
+    let x = 1
+    return x
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Hello world
 
@@ -240,7 +316,45 @@ findLowerThan measure = filter (< measure)
 
 ## Monoids
 
-## monoid example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+class Monoid a where
+        mempty  :: a
+        -- ^ Identity of 'mappend'
+        mappend :: a -> a -> a
+        -- ^ An associative operation
+        mconcat :: [a] -> a
+        mconcat = foldr mappend mempty
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Monoid laws
+
+- Identity law
+    - `mappend mempty x` = `x`
+    - `mappend x mempty` = `x`
+- Associative law
+    - `mappend x (mappend y z)` = `mappend (mappend x y) z`
+
+## Monoid example
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+Sum 4 <> Sum 3 <> Sum 2 <> Sum 1
+--    Sum{getSum = 10}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+mconcat . (map Sum) $ [1..4]
+--    Sum{getSum = 10}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+mconcat . (map $ Just . Sum) $ [1..4]
+--    Just (Sum{getSum = 10})
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+Just (Sum 10) <> Nothing <> Just (Sum 5)
+--    Just (Sum{getSum = 15})
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Higher order functions 
 
@@ -253,6 +367,20 @@ For example, map and fold (reduce) are very common in functional paradigm.
 
 ## Boxes and computation context
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+data MyType a = MyType { usedValue :: a }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- a box, as an analogy, is a useful explanation of a parametrised type
+- `MyType` is a box for any type `a`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+myFunction :: f a -> f a
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `f` is a variable "box" where we don't specify its type
+- the only property specified in the function definition is that the type has to have a type parameter
+
 ## Functors 
 
 - functor allows mapping over them
@@ -263,12 +391,13 @@ For example, map and fold (reduce) are very common in functional paradigm.
       fmap :: (a -> b) -> f a -> f b
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- functor laws:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-    fmap id      = id
-    fmap (p . q) = (fmap p) . (fmap q)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Functor laws
+
+- identity:
+    - `fmap id` = `id`
+- composition:
+    - `fmap (p . q)` = `(fmap p) . (fmap q)`
 
 <div class="notes">
 - `f` is the computation context
@@ -317,20 +446,91 @@ notSureIfString = fmap show notSureIfNumber
 
 ## Applicative functor example
  
+- apply a "boxed" function to a "boxed" value:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+    Just (+1) <*> Just 1                 -- Just 2
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- apply a binary function:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+    Just (+) <*> Just 1 <*> Just 4       -- Just 5
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+    Just (+) <*> Just 1 <*> Nothing      -- Nothing
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- a shorthand for fmap:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+    (+) <$> Just 1 <*> Just 4            -- Just 5
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 ## Monads 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+class  Monad m  where
+    return      :: a -> m a
+    (>>=)       :: m a -> (a -> m b) -> m b
+    (>>)        :: m a -> m b -> m b
+
+    m >> k      = m >>= \_ -> k
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+<div class="notes">
+- `return` - Inject a value into the monadic type.
+- `(>>=)` - Sequentially compose two actions, passing any value produced by the first as an argument to the second.
+- `(>>)` - Sequentially compose two actions, discarding any value produced by the first, like sequencing operators (such as the semicolon) in imperative languages.
+</div>
+
+## Monad laws
+
+- identity:
+    - `return a >>= k`  =  `k a`
+    - `m >>= return`  =  `m`
+- associativity:
+    - `m >>= (\x -> k x >>= h)`  =  `(m >>= k) >>= h`
+
 ## Maybe monad 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+Just 1 >>= (\a -> return $ a+1)  -- or just "Just 1 >>= return . (+1)"
+-- Just 2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `do` notation is just syntactic sugar over `>>=`!
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+argument :: Maybe Int
+argument = return 1
+
+computation :: Maybe Int
+computation = do
+    a <- argument
+    return $ a + 1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## IO monad 
 
-
-# Books to read
-
-## learn you a haskell for great good 
-## real world haskell 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+echo :: IO ()
+echo = getLine >>= putStrLn
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Extras
 
+## Books to read
+
+- learn you a haskell for great good 
+- real world haskell 
+- ...
+
+## lenses
 ## monad transformers
 ## extensible effects 
 ## free monads
-## category theory at the "magic" level 
+## category theory
 

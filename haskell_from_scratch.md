@@ -2,6 +2,20 @@
 % Sarunas Valaskevicius
 % November 22, 2014
 
+# Haskell from scratch
+
+## About me
+
+- started usign Haskell a few years ago
+- writing in Haskell *almost* daily now
+- still puzzled by Category Theory
+
+## What to expect
+
+- an overview of the language
+- basic haskell syntax
+- basic functional programming "patterns"
+
 # Functional programming
 
 ## What is it?
@@ -97,6 +111,7 @@ fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 
     - `a` is a variable type
     - we only require to be able to compare two variables of type `a`
+    - we only **can** compare the variables of type `a`
     - the same type a has to be passed to the 1st and 2nd params
 
 ## Pattern matching
@@ -367,21 +382,28 @@ findLowerThan measure = filter (< measure)
 
 ## Composing two functions
 
-- In haskell, it is possible to compose two functions to one using the (.) operator:
+In haskell, it is possible to compose two functions to one using the `(.)` operator:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-    foo :: Int -> String
-    foo = show
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+foo :: Int -> String
+foo = show
 
-    bar :: String -> [String]
-    bar x = [x]
+bar :: String -> [String]
+bar x = [x]
 
-    foobar = bar . foo
+foobar = bar . foo
 
-    foobar 5  -- ["5"]
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+foobar 5  -- ["5"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- its not a language construct - its a function, defined in the `Prelude`.
+----
+
+...it is not a language construct - like many others, it is a simple function, defined in the `Prelude`:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+(.) :: (b -> c) -> (a -> b) -> a -> c
+(.) f g = \x -> f (g x)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Monoids
 

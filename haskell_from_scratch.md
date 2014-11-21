@@ -77,6 +77,15 @@ print10 = printN 10
 print10 [1..]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
+
+... or even
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+fibs :: [Integer]
+fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## Strong typing
 - algebraic data types
 - uses Hindley-Milner type inference
@@ -151,6 +160,14 @@ print10 [1..]
 - **quickcheck** - randomised testing framework for predefined properties
 - **hspec** - tdd support tool
 
+## Hlint
+
+Linting tool that actually works!
+
+- detects code duplication
+- detects point free improvements
+- many more checks
+
 # Generic language constructs
 
 ## Defining data types
@@ -180,13 +197,65 @@ that of a `data` type, however the runtime is of a type alias.
 
 ## Function declaration
 
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 myFunction :: Type
 myFunction arguments = body
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines a new function available within the module.
+
+## Lambda functions
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+map (\x -> x+5) [1..]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`\params -> body` - defines a lambda function to use.
+
+## Pattern matching
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+fib :: Integer -> Integer
+fib 0 = 1
+fib 1 = 1
+fib n = fib (n-1) + fib (n-2)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Guards!
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+alg :: [Integer] -> Integer -> Integer
+alg (x:x':xs) a
+ | x == a = x' + alg xs x'
+ | otherwise = alg (x':xs) x
+alg [_] _ = 0
+alg [] _ = 0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Allows computation in the matching.
+
+## Case .. of
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+alg :: [Integer] -> Integer -> Integer
+alg (x:x':xs) a = case x == a of
+                    True -> x' + alg xs x'
+                    _ -> alg (x':xs) x')
+alg [_] _ = 0
+alg [] _ = 0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pattern-matches in the code.
+
+## If
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+alg :: [Integer] -> Integer -> Integer
+alg (x:x':xs) a = if x == a then x' + alg xs x'
+                  else alg (x':xs) x'
+alg [_] _ = 0
+alg [] _ = 0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Let .. in
 
@@ -522,15 +591,29 @@ echo = getLine >>= putStrLn
 
 # Extras
 
-## Books to read
-
-- learn you a haskell for great good
-- real world haskell
-- ...
-
 ## lenses
 ## monad transformers
 ## extensible effects
 ## free monads
 ## category theory
+
+# Summary
+
+## You've seen
+
+- overview of haskell ecosystem
+- basic language constructs
+- functional programming constructs
+
+## Where to next?
+
+- code!
+- learn you a haskell for great good
+- real world haskell
+- /r/haskell
+- code more!
+
+## Thanks
+
+Any questions?
 

@@ -1,7 +1,8 @@
 module Web.Crawler (crawl) where
 
 import Data.List (isPrefixOf, stripPrefix)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromJust)
+import Network.URI (parseURIReference, relativeTo, parseURI, uriToString)
 import Network.HTTP (simpleHTTP, getResponseBody, getResponseCode, getRequest, rspHeaders)
 import Network.HTTP.Headers (lookupHeader, HeaderName(..))
 import Text.HTML.TagSoup (parseTags, Tag(..), fromAttrib, isTagOpenName)
@@ -14,7 +15,6 @@ crawlWithHistory :: Int -> [String] -> [String] -> ([Tag String] -> IO()) -> IO 
 crawlWithHistory 0 _ _ _ = return ()
 crawlWithHistory _ [] _ _ = return ()
 crawlWithHistory nr (url:urls) history consumer = do
-    putStrLn url
     processResponse =<< follow url consumer
     where processResponse (Just nextRawSet) = do
             let nextSet = (filterUrls newHistory) . fixUrls $ nextRawSet 
@@ -29,23 +29,26 @@ follow url consumer = do
     processResp code resp
     where links tags = map (absoluteLink . (fromAttrib "href")) $ filter isLink tags
           isLink = isTagOpenName "a"
-          absoluteLink link 
-           | "http://" `isPrefixOf` link = link
-           | "https://" `isPrefixOf` link = link
-           | otherwise = url ++ "/" ++ link
+          absoluteLink = makeAbsoluteUrl url
           processResp (2,_,_) resp = do 
               page <- getResponseBody resp
               let tags = parseTags page
               consumer tags
               return $ Just $ links tags
+          processResp (3,_,_) resp = either (const $ return Nothing) (redirect . (lookupHeader HdrLocation) . rspHeaders) resp
           processResp _ _ = return Nothing
+          redirect (Just newUrl) = follow (absoluteLink newUrl) consumer
+          redirect _ = return Nothing
+
+makeAbsoluteUrl :: String -> String -> String
+makeAbsoluteUrl base link = uriToString id linkUrl ""
+    where baseUrl = fromJust . parseURI $ base
+          linkUri = fromJust . parseURIReference $ link
+          linkUrl = maybe (linkUri `relativeTo` baseUrl) id $ parseURI link
 
 fixUrls :: [String] -> [String]
-fixUrls = (map fixUrl) . catMaybes . map (stripPrefix "http://")
-    where fixUrl = ((++) "http://") . trimSlashes . takeWhile ((/=) '#')
-          trimSlashes ('/':xs) = '/':(trimSlashes . (dropWhile ((==) '/')) $ xs)
-          trimSlashes (x:xs) = x:(trimSlashes xs)
-          trimSlashes [] = []
+fixUrls =  map fixUrl
+    where fixUrl = takeWhile ((/=) '#')
 
 filterUrls :: [String] -> [String] -> [String]
 filterUrls history = (filter (`notElem` history )) . (filter (isPrefixOf "http://"))

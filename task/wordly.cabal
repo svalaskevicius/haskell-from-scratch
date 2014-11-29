@@ -57,7 +57,7 @@ executable crawly
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.7 && <4.8, HTTP >= 4000.2.18, tagsoup >= 0.13.3
+  build-depends:       base >=4.7 && <4.8, HTTP >= 4000.2.18, tagsoup >= 0.13.3, network >= 2.4.2.3
   
   -- Directories containing source files.
   hs-source-dirs:      src

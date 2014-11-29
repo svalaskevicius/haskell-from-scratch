@@ -51,13 +51,13 @@ executable crawly
   main-is:             Crawly.hs
   
   -- Modules included in this executable, other than Main.
-  -- other-modules:       
+  other-modules:       Web.Crawler, Web.Consumer
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base >=4.7 && <4.8, HTTP >= 4000.2.18, tagsoup >= 0.13.3
   
   -- Directories containing source files.
   hs-source-dirs:      src

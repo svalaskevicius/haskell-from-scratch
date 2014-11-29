@@ -4,6 +4,9 @@ import System.Environment (getArgs)
 import System.IO (hPutStrLn, stderr)
 import System.Exit (exitFailure)
 
+import Web.Crawler
+import Web.Consumer
+
 data Params = Params {
     count :: Int,
     url :: String
@@ -13,7 +16,7 @@ usage :: String
 usage = "<program> <count> <url>\n\
         \program: path to the executable\n\
         \count: number of sub-pages to follow\n\
-        \url: the starting url"
+        \url: the starting url\n"
 
 parseInt :: String -> Maybe Int
 parseInt = checkError . reads 
@@ -31,8 +34,7 @@ main :: IO()
 main = do
     args <- getArgs
     process $ parseParams args
-    where process (Just params) = do
-                                    putStrLn $ show params
+    where process (Just (Params count url)) = crawl count [url] printPageSummary
           process Nothing = do
                                     hPutStrLn stderr usage
                                     exitFailure

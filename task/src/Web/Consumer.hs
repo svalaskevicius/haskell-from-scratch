@@ -1,6 +1,10 @@
-module Web.Consumer (printPageSummary) where
+module Web.Consumer (printPageSummary, nGramGenerator) where
 
 import Text.HTML.TagSoup (Tag(..), innerText, isTagCloseName, isTagOpenName)
+import Control.Concurrent (modifyMVar_, withMVar, newMVar)
+
+import Trigram.Generator
+
 
 printPageSummary :: [Tag String] -> IO()
 printPageSummary tags = do
@@ -10,3 +14,9 @@ printPageSummary tags = do
                       in innerText title
           firstRange name = takeWhile (not . (isTagCloseName name)) . dropWhile (not . (isTagOpenName name))
     
+nGramGenerator :: IO ([Tag String] -> IO(), IO NGrams)
+nGramGenerator = do
+    nGrams <- newMVar empty
+    return (addPage nGrams, retrieveNGrams nGrams)
+    where addPage nGrams tags = modifyMVar_ nGrams $ \ng -> return $ addText (innerText tags) ng
+          retrieveNGrams nGrams = withMVar nGrams return

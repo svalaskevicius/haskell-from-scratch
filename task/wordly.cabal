@@ -51,13 +51,15 @@ executable crawly
   main-is:             Crawly.hs
   
   -- Modules included in this executable, other than Main.
-  other-modules:       Web.Crawler, Web.Consumer
+  other-modules:       Web.Crawler, Web.Consumer, Trigram.Generator
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.7 && <4.8, HTTP >= 4000.2.18, tagsoup >= 0.13.3, network >= 2.4.2.3
+  build-depends:       base >=4.7 && <4.8, HTTP >= 4000.2.18, tagsoup >= 0.13.3, 
+                       network >= 2.4.2.3, bytestring >= 0.10.4.0, bytestring-trie >= 0.2.4,
+                       binary >= 0.7.1.0
   
   -- Directories containing source files.
   hs-source-dirs:      src

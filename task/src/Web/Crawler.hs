@@ -16,25 +16,27 @@ data ConcurentCrawlers = ConcurentCrawlers {
     nextLinks :: [String]
 }
 
+data Strict a = Strict !a
+
 crawl :: Int -> [String] -> ([Tag String] -> IO()) -> IO ()
 crawl nr urls consumer = do
-    crawlerInfo <- newMVar $ ConcurentCrawlers 0 nr [] urls
+    crawlerInfo <- newMVar $ Strict $ ConcurentCrawlers 0 nr [] urls
     crawlConcurrently crawlerInfo consumer
 
-crawlConcurrently :: MVar ConcurentCrawlers -> ([Tag String] -> IO()) -> IO ()
+crawlConcurrently :: MVar (Strict ConcurentCrawlers) -> ([Tag String] -> IO()) -> IO ()
 crawlConcurrently crawlerInfo consumer = scheduler
     where scheduler = do
-              (count, left, noLinks) <- withMVar crawlerInfo (\info -> return (crawlerCount info, leftToCrawl info, null . nextLinks $ info))
+              (count, left, noLinks) <- withMVar crawlerInfo (\(Strict info) -> return (crawlerCount info, leftToCrawl info, null . nextLinks $ info))
               if left > 0 then do
                   if count > 20 || noLinks then threadDelay 100000
                   else modifyMVar_ crawlerInfo spawnCrawler
                   scheduler
               else if count > 0 then threadDelay 100000 >> scheduler
                    else return ()
-          spawnCrawler concurentCrawlers = do
+          spawnCrawler (Strict concurentCrawlers) = do
               let url = head . nextLinks $ concurentCrawlers
               forkIO $ crawlOne url
-              return $ concurentCrawlers {
+              return $ Strict $ concurentCrawlers {
                   crawlerCount = crawlerCount concurentCrawlers + 1,
                   leftToCrawl = leftToCrawl concurentCrawlers - 1,
                   history = url : (history concurentCrawlers),
@@ -42,11 +44,11 @@ crawlConcurrently crawlerInfo consumer = scheduler
               }
           crawlOne url = processResponse =<< follow url consumer
           processResponse (Just nextRawSet) = do
-              modifyMVar_ crawlerInfo (\info -> return $ info{
+              modifyMVar_ crawlerInfo (\(Strict info) -> return $ Strict $ info{
                                                     crawlerCount = crawlerCount info - 1,
                                                     nextLinks = (prepareNextSet (history info) nextRawSet) ++ (nextLinks info)
                                                 })
-          processResponse Nothing = modifyMVar_ crawlerInfo (\info -> return $ info{
+          processResponse Nothing = modifyMVar_ crawlerInfo (\(Strict info) -> return $ Strict $ info{
                                                     crawlerCount = crawlerCount info - 1,
                                                     leftToCrawl = leftToCrawl info + 1
                                                 })

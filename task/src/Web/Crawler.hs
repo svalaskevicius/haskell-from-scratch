@@ -1,6 +1,6 @@
 module Web.Crawler (crawl, Document) where
 
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, nub)
 import Network.URI (parseURIReference, relativeTo, parseURI, uriToString)
 import Network.HTTP (simpleHTTP, getResponseBody, getResponseCode, getRequest, rspHeaders)
 import Network.HTTP.Headers (lookupHeader, HeaderName(..))
@@ -32,7 +32,7 @@ crawlConcurrently crawlerInfo consumer = scheduler
     where scheduler = do
               (count, leftLinks, noLinks) <- withMVar crawlerInfo (\(Strict info) -> return (crawlerCount info, leftToCrawl info, null . nextLinks $ info))
               if leftLinks > 0 then do
-                  if count > 20 || noLinks then threadDelay 100000
+                  if count > 10 || noLinks then threadDelay 100000
                   else modifyMVar_ crawlerInfo spawnCrawler
                   scheduler
               else if count > 0 then threadDelay 100000 >> scheduler
@@ -53,7 +53,7 @@ crawlConcurrently crawlerInfo consumer = scheduler
           processResponse (Just nextRawSet) = modifyMVar_ crawlerInfo (\(Strict info) -> 
                                                 return $ Strict $ info{
                                                     crawlerCount = crawlerCount info - 1,
-                                                    nextLinks = (prepareNextSet (history info) nextRawSet) ++ (nextLinks info)
+                                                    nextLinks = nub $! (prepareNextSet (history info) nextRawSet) ++ (nextLinks info)
                                                 })
           processResponse Nothing = modifyMVar_ crawlerInfo (\(Strict info) -> 
                                                 return $ Strict $ info{

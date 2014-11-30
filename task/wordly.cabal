@@ -66,11 +66,34 @@ executable crawly
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
-  ghc-options:         -O2 -Wall -rtsopts
+  ghc-options:         -O2 -Wall -rtsopts -auto-all -caf-all 
 
 executable wordly
   -- .hs or .lhs file containing the Main module.
   main-is:             Wordly.hs
+  
+  -- Modules included in this executable, other than Main.
+  -- other-modules:       
+  
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:    
+  
+  -- Other library packages from which modules are imported.
+  build-depends:       base >=4.7 && <4.8, bytestring >= 0.10.4.0, bytestring-trie >= 0.2.4,
+                       binary >= 0.7.1.0, random >= 1.0.1.1
+  
+  -- Directories containing source files.
+  hs-source-dirs:      src
+  
+  -- Base language which the package is written in.
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+
+
+executable printly
+  -- .hs or .lhs file containing the Main module.
+  main-is:             Printly.hs
   
   -- Modules included in this executable, other than Main.
   -- other-modules:       

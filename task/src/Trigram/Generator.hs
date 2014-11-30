@@ -2,7 +2,8 @@ module Trigram.Generator (
     NGrams(..),
     addText,
     generateSentence,
-    emptyNGrams
+    emptyNGrams,
+    nGramsInfo,
     ) where
 
 import Prelude hiding (lookup)
@@ -89,6 +90,15 @@ getStart (Branch b) = do
 getStart _ = return []
 
 
+nGramsInfo :: NGrams -> [([String], Double)]
+nGramsInfo (Leaf (NGramEndings ends repsAll)) = map convertLeaf $ toList ends
+    where convertLeaf (s, reps) = ([unpack s], prob reps)
+          prob :: Int -> Double
+          prob r = (fromIntegral r) / (fromIntegral repsAll)
+nGramsInfo (Branch b) = concat $ map convertBranch $ toList b
+    where convertBranch (s, subs) = map (prependString s) $ nGramsInfo subs
+          prependString s (strings, prob) = ((unpack s):strings, prob)
+
 
 
 
@@ -98,7 +108,7 @@ addSentence sentence ngram = foldr addTrigram ngram trigrams
 
 addTrigram :: [String] -> NGrams -> NGrams
 addTrigram [] ngram = ngram
-addTrigram wordList ngram = insertToNgrams key newData ngram
+addTrigram wordList ngram = newData `seq` insertToNgrams key newData ngram
     where key = (map pack) . init $ wordList
 
           lastWord = pack . last $ wordList
@@ -106,8 +116,8 @@ addTrigram wordList ngram = insertToNgrams key newData ngram
           oldData = lookupFromNgrams key ngram
 
           newData = case oldData of 
-                        Just d -> d{endings = newEndings $ endings d, count = count d + 1}
-                        Nothing -> NGramEndings (singleton lastWord 1) 1
+                        Just d -> d{endings = newEndings $! endings d, count = count d + 1}
+                        Nothing -> NGramEndings (lastWord `seq` singleton lastWord 1) 1
 
           newEndings oldEndings = case lookup lastWord oldEndings of
                         Just c -> insert lastWord  (c+1) oldEndings
@@ -115,8 +125,8 @@ addTrigram wordList ngram = insertToNgrams key newData ngram
 
 
 insertToNgrams :: [ByteString] -> NGramEndings -> NGrams -> NGrams
-insertToNgrams [k] newData (Branch b) = Branch $ insert k (Leaf newData) b
-insertToNgrams (k:key) newData (Branch b) = Branch $ maybe 
+insertToNgrams [k] newData (Branch b) = Branch $! insert k (Leaf newData) b
+insertToNgrams (k:key) newData (Branch b) = Branch $! maybe 
                                                 (insert k (insertToNgrams key newData emptyNGrams) b) 
                                                 (\ng -> (insert k (insertToNgrams key newData ng) b))
                                                 $ lookup k b

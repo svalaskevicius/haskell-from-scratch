@@ -28,7 +28,7 @@ nGramGenerator = do
 
 getDocumentText :: Document -> IO String
 getDocumentText doc = do
-    let textTags = ["div", "p", "span", "i", "b", "u"]
+    let textTags = ["div", "p", "span", "i", "b", "u", "center", "font", "td"]
         selector = (foldr1 (<+>)) . (map css) $ textTags
     texts <- runX $ doc >>> selector /> getText
     return $ intercalate ". " texts

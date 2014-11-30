@@ -1,17 +1,19 @@
 module Trigram.Generator (
     NGrams(..),
     addText,
+    generateSentence,
     empty
     ) where
 
 import Prelude hiding (lookup)
 import Data.ByteString (ByteString(..))
-import Data.ByteString.Char8 (pack)
+import Data.ByteString.Char8 (pack, unpack)
 import Data.Trie (Trie(..))
 import Data.List (tails)
-import Data.Trie (insert, singleton, lookup, empty)
+import Data.Trie (insert, singleton, lookup, empty, submap, size, keys)
 import Debug.Trace (trace)
 import Data.Binary (Binary(..), Get(..))
+import System.Random (randomRIO)
 
 data NGramEndings = NGramEndings {
     endings :: Trie Int,
@@ -36,6 +38,33 @@ sentenceEnd = "<=^"
 addText :: String -> NGrams -> NGrams
 addText text ngram = foldr addSentence ngram sentences
     where sentences = breakAll (`elem` ".?!") text
+
+-- TODO: use real probability
+generateSentence :: NGrams -> IO String
+generateSentence ngrams = do
+    start <- getStart
+    let [x1, x2] = (map pack) . words . unpack $ start
+    generateNext (unpack start) x1 x2
+    where getStart = do
+                idx <- randomRIO (0, size startGrams - 1)
+                return $ (keys startGrams)!!idx
+          startGrams = submap (pack sentenceStart) ngrams
+          generateNext prefix prev current = do
+                let key = pack . unwords . (map unpack) $ [prev, current]
+                case lookup key ngrams of
+                    Just e -> do
+                        let sz = size $ endings e
+                        if sz == 0 then return prefix
+                        else do
+                            idx <- randomRIO (0, sz - 1)
+                            let new = (keys $ endings e)!!idx
+                            generateNext (prefix ++ " "++ (unpack new)) current new
+                    Nothing -> return prefix
+                
+
+
+
+
 
 addSentence :: String -> NGrams -> NGrams
 addSentence sentence ngram = foldr addTrigram ngram trigrams

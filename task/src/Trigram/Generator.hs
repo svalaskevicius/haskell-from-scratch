@@ -69,10 +69,10 @@ generateSentence ng = do
 selectSuffix :: NGramEndings -> IO ByteString
 selectSuffix (NGramEndings{count = 0}) = return $ pack sentenceEnd
 selectSuffix (NGramEndings{endings = ends, count = c}) = do
-    needle <- randomRIO (1, c)
+    needle <- randomRIO (0, c-1)
     return $ findEnding needle $ toList ends
     where findEnding needle ((bs, reps):others)
-           | needle >= reps = bs
+           | needle < reps = bs
            | otherwise = findEnding (needle - reps) others
           findEnding _ _ = pack sentenceEnd
 

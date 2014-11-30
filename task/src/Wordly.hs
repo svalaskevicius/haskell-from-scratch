@@ -7,10 +7,7 @@ import Data.Binary (decodeFile)
 
 import Trigram.Generator
 
-data Params = Params {
-    count :: Int,
-    filePath :: FilePath
-} deriving (Show)
+data Params = Params Int FilePath deriving (Show)
 
 usage :: String
 usage = "<program> <count> <trigram file>\n\
@@ -36,7 +33,7 @@ main = do
     process $ parseParams args
     where process (Just (Params count filePath)) = do
                                 nGrams <- decodeFile filePath
-                                sequence_ $ take count $ map (const $ putStrLn =<< (generateSentence nGrams)) [1..]
+                                sequence_ $ take count $ map (const $ putStrLn =<< (generateSentence nGrams)) [(1::Int)..]
           process Nothing = do
                                 hPutStrLn stderr usage
                                 exitFailure

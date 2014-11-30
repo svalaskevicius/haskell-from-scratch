@@ -8,11 +8,7 @@ import Data.Binary (encodeFile)
 import Web.Crawler
 import Web.Consumer
 
-data Params = Params {
-    count :: Int,
-    url :: String,
-    filePath :: FilePath
-} deriving (Show)
+data Params = Params Int String FilePath deriving (Show)
 
 usage :: String
 usage = "<program> <count> <url> <filePath>\n\

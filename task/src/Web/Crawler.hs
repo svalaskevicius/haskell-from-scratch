@@ -1,13 +1,17 @@
-module Web.Crawler (crawl) where
+module Web.Crawler (crawl, Document) where
 
-import Data.List (isPrefixOf, stripPrefix)
-import Data.Maybe (catMaybes, fromJust)
+import Data.List (isPrefixOf)
 import Network.URI (parseURIReference, relativeTo, parseURI, uriToString)
 import Network.HTTP (simpleHTTP, getResponseBody, getResponseCode, getRequest, rspHeaders)
 import Network.HTTP.Headers (lookupHeader, HeaderName(..))
-import Text.HTML.TagSoup (parseTags, Tag(..), fromAttrib, isTagOpenName)
 import Control.Concurrent (forkIO, modifyMVar_, threadDelay, withMVar, newMVar, MVar)
 import Control.Monad ((<=<))
+import Text.XML.HXT.Core
+import Data.Maybe (catMaybes)
+import Text.HandsomeSoup
+import Data.Tree.NTree.TypeDefs (NTree)
+
+type Document = IOSLA (XIOState ()) XmlTree (NTree XNode)
 
 data ConcurentCrawlers = ConcurentCrawlers {
     crawlerCount :: Int,
@@ -18,16 +22,16 @@ data ConcurentCrawlers = ConcurentCrawlers {
 
 data Strict a = Strict !a
 
-crawl :: Int -> [String] -> ([Tag String] -> IO()) -> IO ()
+crawl :: Int -> [String] -> (Document -> IO()) -> IO ()
 crawl nr urls consumer = do
     crawlerInfo <- newMVar $ Strict $ ConcurentCrawlers 0 nr [] urls
     crawlConcurrently crawlerInfo consumer
 
-crawlConcurrently :: MVar (Strict ConcurentCrawlers) -> ([Tag String] -> IO()) -> IO ()
+crawlConcurrently :: MVar (Strict ConcurentCrawlers) -> (Document -> IO()) -> IO ()
 crawlConcurrently crawlerInfo consumer = scheduler
     where scheduler = do
-              (count, left, noLinks) <- withMVar crawlerInfo (\(Strict info) -> return (crawlerCount info, leftToCrawl info, null . nextLinks $ info))
-              if left > 0 then do
+              (count, leftLinks, noLinks) <- withMVar crawlerInfo (\(Strict info) -> return (crawlerCount info, leftToCrawl info, null . nextLinks $ info))
+              if leftLinks > 0 then do
                   if count > 20 || noLinks then threadDelay 100000
                   else modifyMVar_ crawlerInfo spawnCrawler
                   scheduler
@@ -36,7 +40,7 @@ crawlConcurrently crawlerInfo consumer = scheduler
 
           spawnCrawler (Strict concurentCrawlers) = do
               let url = head . nextLinks $ concurentCrawlers
-              forkIO $ crawlOne url
+              _ <- forkIO $ crawlOne url
               return $ Strict $ concurentCrawlers {
                   crawlerCount = crawlerCount concurentCrawlers + 1,
                   leftToCrawl = leftToCrawl concurentCrawlers - 1,
@@ -57,23 +61,26 @@ crawlConcurrently crawlerInfo consumer = scheduler
                                                     leftToCrawl = leftToCrawl info + 1
                                                 })
 
-          prepareNextSet history = (filterUrls history) . fixUrls
+          prepareNextSet historyUrls = (filterUrls historyUrls) . fixUrls
           
 
-follow :: String -> ([Tag String] -> IO()) -> IO (Maybe [String])
+follow :: String -> (Document -> IO()) -> IO (Maybe [String])
 follow url consumer = do
     resp <- simpleHTTP $ getRequest url
     code <- getResponseCode resp
     processResp code resp
-    where links tags = catMaybes . map (absoluteLink . (fromAttrib "href")) $ filter isLink tags
-          isLink = isTagOpenName "a"
+    where getLinks doc = do
+              links <- runX $ doc >>> css "a" >>> getAttrValue "href"
+              return $ catMaybes . (map absoluteLink) $ links
+
           absoluteLink link = makeAbsoluteUrl url link
 
           processResp (2,_,_) resp = do 
               page <- getResponseBody resp
-              let tags = parseTags page
-              consumer tags
-              return $ Just $ links tags
+              let doc = readString [withParseHTML yes, withWarnings no] page
+              consumer doc
+              links <- getLinks doc
+              return $ Just links
           processResp (3,_,_) resp = either (const $ return Nothing) (redirect . (absoluteLink <=< lookupHeader HdrLocation) . rspHeaders) resp
           processResp _ _ = return Nothing
 
@@ -85,14 +92,14 @@ follow url consumer = do
 
 makeAbsoluteUrl :: String -> String -> Maybe String
 makeAbsoluteUrl base link = fmap toString linkUrl
-    where baseUrl = parseURI $ base
+    where getBaseUrl = parseURI $ base
 
-          linkUri = parseURIReference $ link
+          getLinkUri = parseURIReference $ link
 
           linkUrl = maybe (do
-                            base <- baseUrl
-                            link <- linkUri
-                            return $ link `relativeTo` base
+                            baseUrl <- getBaseUrl
+                            linkUri <- getLinkUri
+                            return $ linkUri `relativeTo` baseUrl
                         ) Just $ parseURI link
 
           toString url = uriToString id url ""
@@ -102,7 +109,7 @@ fixUrls =  map fixUrl
     where fixUrl = takeWhile ((/=) '#')
 
 filterUrls :: [String] -> [String] -> [String]
-filterUrls history = (filter (`notElem` history )) . (filter isHttp)
+filterUrls historyUrls = (filter (`notElem` historyUrls)) . (filter isHttp)
 
 isHttp :: String -> Bool
 isHttp = isPrefixOf "http://"

@@ -1,37 +1,34 @@
 module Web.Consumer (printPageSummary, nGramGenerator) where
 
-import Text.HTML.TagSoup (Tag(..), innerText, isTagCloseName, isTagOpenName, isTagText, fromTagText, isTagPosition)
-import Control.Concurrent (modifyMVar_, withMVar, newMVar, MVar(..))
+import Control.Concurrent (modifyMVar_, withMVar, newMVar)
 import Data.List (intercalate)
-
 import Trigram.Generator
+import Text.XML.HXT.Core
+import Text.HandsomeSoup
+
+import Web.Crawler (Document)
 
 data Strict a = Strict !a
 
-printPageSummary :: [Tag String] -> IO()
-printPageSummary tags = do
-    putStrLn $ (show titleText) ++ " " ++ (show . length . innerText $ tags)
-    where titleText = let head = firstRange "head" tags
-                          title = firstRange "title" head
-                      in innerText title
+printPageSummary :: Document -> IO ()
+printPageSummary doc = do
+    titles <- runX $ doc >>> css "head title" /> getText
+    text <- getDocumentText doc
+    putStrLn $! (show . concat $ titles) ++ " " ++ (show . length $ text)
     
-nGramGenerator :: IO ([Tag String] -> IO(), IO NGrams)
+nGramGenerator :: IO (Document -> IO(), IO NGrams)
 nGramGenerator = do
     nGrams <- newMVar $ Strict emptyNGrams
     return (addPage nGrams, retrieveNGrams nGrams)
-    where addPage nGrams tags = modifyMVar_ nGrams $ \(Strict ng) -> return $ Strict $ addText (tagsToText tags) ng
+    where addPage nGrams doc = modifyMVar_ nGrams $ \(Strict ng) -> do
+              text <- getDocumentText doc
+              return $ Strict $! addText text ng
           retrieveNGrams nGrams = withMVar nGrams (return . fromStrict)
           fromStrict (Strict a) = a
-          
-tagsToText :: [Tag String] -> String
-tagsToText = (intercalate ". ") . (filter ((> 30).length)) . (map fromTagText) . (filter isTagText) . dropRanges "script" . firstRange "body"
 
-
-firstRange :: String -> [Tag String] -> [Tag String]
-firstRange name = takeWhile (not . (isTagCloseName name)) . dropWhile (not . (isTagOpenName name))
-
-dropRanges :: String -> [Tag String] -> [Tag String]
-dropRanges _ [] = []
-dropRanges name tags = outside ++ (dropRanges name . dropWhile (isTagCloseName name) . dropWhile (not . (isTagCloseName name)) $ afterStart)
-    where (outside, afterStart) = break (isTagOpenName name) tags
-    
+getDocumentText :: Document -> IO String
+getDocumentText doc = do
+    let textTags = ["div", "p", "span", "i", "b", "u"]
+        selector = (foldr1 (<+>)) . (map css) $ textTags
+    texts <- runX $ doc >>> selector /> getText
+    return $ intercalate ". " texts

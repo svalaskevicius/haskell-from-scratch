@@ -1,6 +1,6 @@
 module Web.Consumer (printPageSummary, nGramGenerator) where
 
-import Text.HTML.TagSoup (Tag(..), innerText, isTagCloseName, isTagOpenName, isTagText, fromTagText)
+import Text.HTML.TagSoup (Tag(..), innerText, isTagCloseName, isTagOpenName, isTagText, fromTagText, isTagPosition)
 import Control.Concurrent (modifyMVar_, withMVar, newMVar, MVar(..))
 import Data.List (intercalate)
 
@@ -17,7 +17,7 @@ printPageSummary tags = do
     
 nGramGenerator :: IO ([Tag String] -> IO(), IO NGrams)
 nGramGenerator = do
-    nGrams <- newMVar $ Strict empty
+    nGrams <- newMVar $ Strict emptyNGrams
     return (addPage nGrams, retrieveNGrams nGrams)
     where addPage nGrams tags = modifyMVar_ nGrams $ \(Strict ng) -> return $ Strict $ addText (tagsToText tags) ng
           retrieveNGrams nGrams = withMVar nGrams (return . fromStrict)

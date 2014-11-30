@@ -2,17 +2,16 @@ module Trigram.Generator (
     NGrams(..),
     addText,
     generateSentence,
-    empty
+    emptyNGrams
     ) where
 
 import Prelude hiding (lookup)
-import Data.ByteString (ByteString(..))
+import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (pack, unpack)
-import Data.Trie (Trie(..))
-import Data.List (tails)
-import Data.Trie (insert, singleton, lookup, empty, submap, size, keys)
-import Debug.Trace (trace)
-import Data.Binary (Binary(..), Get(..))
+import Data.Trie (Trie)
+import Data.List (tails, intercalate)
+import Data.Trie (insert, singleton, lookup, empty, size, keys, toList)
+import Data.Binary (Binary(..), Get)
 import System.Random (randomRIO)
 
 data NGramEndings = NGramEndings {
@@ -27,7 +26,21 @@ instance Binary NGramEndings where
         return $ NGramEndings e c
     put (NGramEndings e c) = put c >> put e
 
-type NGrams = Trie NGramEndings
+data NGrams = Leaf NGramEndings | Branch (Trie NGrams) deriving (Show)
+
+instance Binary NGrams where
+    get = do
+        c <- get :: Get Int
+        case c of
+            1 -> return . Leaf =<< (get :: Get (NGramEndings))
+            2 -> return . Branch =<< (get :: Get (Trie NGrams))
+            _ -> fail "unexpected symbol while decoding NGrams!"
+    put (Leaf t) = put (1::Int) >> put t
+    put (Branch t) = put (2::Int) >> put t
+
+
+emptyNGrams :: NGrams
+emptyNGrams = Branch empty
 
 sentenceStart :: String
 sentenceStart = "^=>"
@@ -39,28 +52,41 @@ addText :: String -> NGrams -> NGrams
 addText text ngram = foldr addSentence ngram sentences
     where sentences = breakAll (`elem` ".?!") text
 
--- TODO: use real probability
 generateSentence :: NGrams -> IO String
-generateSentence ngrams = do
-    start <- getStart
-    let [x1, x2] = (map pack) . words . unpack $ start
-    generateNext (unpack start) x1 x2
-    where getStart = do
-                idx <- randomRIO (0, size startGrams - 1)
-                return $ (keys startGrams)!!idx
-          startGrams = submap (pack sentenceStart) ngrams
-          generateNext prefix prev current = do
-                let key = pack . unwords . (map unpack) $ [prev, current]
-                case lookup key ngrams of
-                    Just e -> do
-                        let sz = size $ endings e
-                        if sz == 0 then return prefix
-                        else do
-                            idx <- randomRIO (0, sz - 1)
-                            let new = (keys $ endings e)!!idx
-                            generateNext (prefix ++ " "++ (unpack new)) current new
-                    Nothing -> return prefix
-                
+generateSentence ng = do
+    start <- getStart ng
+    let startingWords = (intercalate " ") . (map unpack) . tail $ start
+    generateNext startingWords start
+    where generateNext prefix key@[_, current] = case lookupFromNgrams key ng of
+              Just e -> do
+                  new <- selectSuffix e
+                  let newString = unpack new
+                  if newString == sentenceEnd then return prefix
+                  else generateNext (prefix ++ " "++ newString) [current, new]
+              Nothing -> return prefix
+          generateNext _ _ = return ""
+
+selectSuffix :: NGramEndings -> IO ByteString
+selectSuffix (NGramEndings{count = 0}) = return $ pack sentenceEnd
+selectSuffix (NGramEndings{endings = ends, count = c}) = do
+    needle <- randomRIO (1, c)
+    return $ findEnding needle $ toList ends
+    where findEnding needle ((bs, reps):others)
+           | needle >= reps = bs
+           | otherwise = findEnding (needle - reps) others
+          findEnding _ _ = pack sentenceEnd
+
+getStart :: NGrams -> IO [ByteString]
+getStart (Branch b) = do
+        subkey <- randomSubKey $ lookup startingKey b
+        return $ startingKey : subkey
+    where randomSubKey (Just (Branch ng)) = do
+              let sz = size ng
+              idx <- randomRIO (0, sz - 1)
+              return [(keys ng)!!idx]
+          randomSubKey _ = return []
+          startingKey = pack sentenceStart
+getStart _ = return []
 
 
 
@@ -72,20 +98,37 @@ addSentence sentence ngram = foldr addTrigram ngram trigrams
 
 addTrigram :: [String] -> NGrams -> NGrams
 addTrigram [] ngram = ngram
-addTrigram words ngram = insert key newData ngram
-    where key = pack . unwords . init $ words
-          lastWord = pack . last $ words
-          oldData = lookup key ngram
+addTrigram wordList ngram = insertToNgrams key newData ngram
+    where key = (map pack) . init $ wordList
+
+          lastWord = pack . last $ wordList
+
+          oldData = lookupFromNgrams key ngram
+
           newData = case oldData of 
                         Just d -> d{endings = newEndings $ endings d, count = count d + 1}
                         Nothing -> NGramEndings (singleton lastWord 1) 1
+
           newEndings oldEndings = case lookup lastWord oldEndings of
                         Just c -> insert lastWord  (c+1) oldEndings
                         Nothing -> insert lastWord 1 oldEndings
 
 
+insertToNgrams :: [ByteString] -> NGramEndings -> NGrams -> NGrams
+insertToNgrams [k] newData (Branch b) = Branch $ insert k (Leaf newData) b
+insertToNgrams (k:key) newData (Branch b) = Branch $ maybe 
+                                                (insert k (insertToNgrams key newData emptyNGrams) b) 
+                                                (\ng -> (insert k (insertToNgrams key newData ng) b))
+                                                $ lookup k b
+insertToNgrams _ _ ng = ng
+
+lookupFromNgrams :: [ByteString] -> NGrams -> Maybe NGramEndings
+lookupFromNgrams [] (Leaf l) = Just l
+lookupFromNgrams (k:key) (Branch b) = lookup k b >>= lookupFromNgrams key
+lookupFromNgrams _ _ = Nothing
+
 ngrams :: Int -> [String] -> [[String]]
-ngrams degree words = [take degree w | w <- tails words]
+ngrams degree wordList = filter ((== degree) . length) $ [take degree w | w <- tails wordList]
 
 
 breakAll :: (a -> Bool) -> [a] -> [[a]]
@@ -93,6 +136,8 @@ breakAll _ [] = []
 breakAll condition list = if null first then [nextOnes]
                           else match : breakAll condition nextOnes
     where (first, others) = break condition list
+
           match = first ++ takeWhile condition others
+
           nextOnes = dropWhile condition others
     

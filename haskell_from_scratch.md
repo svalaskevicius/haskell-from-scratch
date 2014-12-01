@@ -7,14 +7,18 @@
 ## About me
 
 - started usign Haskell a few years ago
-- writing in Haskell *almost* daily now
-- still puzzled by Category Theory
+- writing in Haskell at least several times a week
+- still sometimes puzzled by Category Theory
+
+\
+
+Sarunas Valaskevicius @ Inviqa
 
 ## What to expect
 
 - an overview of the language
 - basic haskell syntax
-- basic functional programming "patterns"
+- basic functional programming patterns
 
 # Functional programming
 
@@ -23,7 +27,7 @@
 - *a style of building the structure and elements of computer programs, that treats computation as the evaluation of mathematical functions and avoids changing state and mutable data.* [Wikipedia]
 - It is a *declarative programming paradigm*, which means programming is done with expressions
 - *function* as first class citizen
-- breaks data encapsulation as perceived in OO, decouples for better *behaviour reusability*
+- breaks data encapsulation as perceived in OO, aims to decouple *behaviour* for better reusability
     - data can still be bound by curying or closures
 
 <div class="notes">
@@ -100,6 +104,18 @@ fibs :: [Integer]
 fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+## Space leaks
+
+Laziness can be bad too - and space leaks are the effects we want to avoid.
+
+It is possible to specify strict computation when required.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+stricter :: Integer -> Integer -> Integer
+stricter a b = id $! a + b
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## Strong typing
 - algebraic data types
 - uses Hindley-Milner type inference
@@ -143,7 +159,6 @@ fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 ## Modules
 - export closely related functions
 - hide private implementation
-- conceptually similar to module pattern in javascript
 
         Data.List
 
@@ -156,7 +171,7 @@ fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 ## Compiler choices
 
 - **ghc** is the current preference, has multiple backends (native, llvm, c)
-- **jhc** performs whole program optimisation
+- **jhc** performs whole program optimisation (not maintained)
 - ...
 
 ## ghci (repl)
@@ -176,8 +191,6 @@ fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 - **hspec** - tdd support tool
 
 ## Hlint
-
-Linting tool that actually works!
 
 - detects code duplication
 - detects point free improvements
@@ -294,8 +307,8 @@ myFunction = increasedX
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 myFunction :: IO Int
 myFunction = do
-    otherFunction
-    return 1
+    other <- otherFunction
+    return $ 1 + other
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Let inside do

@@ -28,7 +28,7 @@ Sarunas Valaskevicius @ Inviqa
 - It is a *declarative programming paradigm*, which means programming is done with expressions
 - *function* as first class citizen
 - breaks data encapsulation as perceived in OO, aims to decouple *behaviour* for better reusability
-    - data can still be bound by curying or closures
+    - data can still be bound by currying or closures
 
 <div class="notes">
 - focuses on behaviour
@@ -67,11 +67,11 @@ Serverside:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 y = f x
 g = h y y
-    =>
-g = h (f x) (f x)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- *all* functions in haskell are pure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+g = h (f x) (f x)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ## "No side effects"
@@ -159,11 +159,9 @@ stricter a b = id $! a + b
 ## Modules
 - export closely related functions
 - hide private implementation
-
-        Data.List
-
 - directory path is mapped to the module name
 
+        Data.List
 
 
 # Ecosystem
@@ -608,12 +606,9 @@ Just 1 >>= (\a -> return $ a+1)  -- or just "Just 1 >>= return . (+1)"
 The `do` notation is just syntactic sugar over `>>=`!
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-argument :: Maybe Int
-argument = return 1
-
 computation :: Maybe Int
 computation = do
-    a <- argument
+    a <- Just 1
     return $ a + 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

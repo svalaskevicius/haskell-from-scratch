@@ -6,7 +6,7 @@
 
 ## About me
 
-- started usign Haskell a few years ago
+- started using Haskell a few years ago
 - writing in Haskell at least several times a week
 - still sometimes puzzled by Category Theory
 

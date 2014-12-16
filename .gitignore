@@ -1,5 +1,4 @@
 /.contents.html
-/index.html
 .cabal-sandbox/
 cabal.sandbox.config
 dist/

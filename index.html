@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+        <base href="reveal.js/">
+
+		<title>Haskell from scratch</title>
+
+		<meta name="description" content="Introduction to haskell">
+		<meta name="author" content="Sarunas Valaskevicius">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/beige.css" id="theme">
+
+		<link rel="stylesheet" href="../codestyle.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<div class="slides">
+                <section><section id="haskell-from-scratch" class="titleslide slide level1"><h1>Haskell from scratch</h1></section><section id="about-me" class="slide level2">
+<h1>About me</h1>
+<ul>
+<li>started using Haskell a few years ago</li>
+<li>writing in Haskell at least several times a week</li>
+<li>still sometimes puzzled by Category Theory</li>
+</ul>
+<p><br /> Sarunas Valaskevicius @ Inviqa</p>
+</section><section id="what-to-expect" class="slide level2">
+<h1>What to expect</h1>
+<ul>
+<li>an overview of the language</li>
+<li>basic haskell syntax</li>
+<li>basic functional programming patterns</li>
+</ul>
+</section></section>
+<section><section id="functional-programming" class="titleslide slide level1"><h1>Functional programming</h1></section><section id="what-is-it" class="slide level2">
+<h1>What is it?</h1>
+<ul>
+<li><em>a style of building the structure and elements of computer programs, that treats computation as the evaluation of mathematical functions and avoids changing state and mutable data.</em> [Wikipedia]</li>
+<li>It is a <em>declarative programming paradigm</em>, which means programming is done with expressions</li>
+<li><em>function</em> as first class citizen</li>
+<li>breaks data encapsulation as perceived in OO, aims to decouple <em>behaviour</em> for better reusability
+<ul>
+<li>data can still be bound by currying or closures</li>
+</ul></li>
+</ul>
+<aside class="notes">
+<ul>
+<li>focuses on behaviour</li>
+<li>declare the functional relation, rather than &quot;tell computer how to do stuff&quot;</li>
+<li>can functions pass around, call from another context, even return them</li>
+</ul>
+</aside>
+</section><section id="youve-used-functional-elements-already" class="slide level2">
+<h1>You've used functional elements already</h1>
+<ul>
+<li>map, reduce;</li>
+<li>closures;</li>
+<li>promise pattern in javascript..</li>
+</ul>
+</section></section>
+<section><section id="about-haskell" class="titleslide slide level1"><h1>About haskell</h1></section><section id="generic-programming-language" class="slide level2">
+<h1>Generic programming language</h1>
+<ul>
+<li>desktop applications</li>
+<li>server side software</li>
+<li>known to be especially good at DSLs</li>
+</ul>
+<aside class="notes">
+<p>Many examples for <em>desktop</em> include: - xmonad - the famous window manager - pandoc - document converter</p>
+Serverside: - yesod - web framework - many companies include <em>some</em> haskell based component in their stack
+</aside>
+</section><section id="purity-and-referential-transparency" class="slide level2">
+<h1>Purity and referential transparency</h1>
+<ul>
+<li>function with no side effects is pure</li>
+<li>this property is called referential transparency</li>
+<li>it allows equational reasoning:</li>
+</ul>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">y <span class="fu">=</span> f x
+g <span class="fu">=</span> h y y</code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">g <span class="fu">=</span> h (f x) (f x)</code></pre>
+</section><section id="no-side-effects" class="slide level2">
+<h1>&quot;No side effects&quot;</h1>
+<ul>
+<li>all data is passed immutably</li>
+<li>a function with same parameters will always return the same result</li>
+<li>reduces the risk of bugs - all changes to data are explicit</li>
+</ul>
+</section><section id="laziness" class="slide level2">
+<h1>Laziness</h1>
+<ul>
+<li>most programming languages use eager evaluation</li>
+<li>but some start to implement lazy <em>generators</em></li>
+<li>haskell is <strong>lazy</strong>: it will only compute a value when its actually used</li>
+<li>problematic in microcontroller space</li>
+<li>very convenient in generic programming - allows infinite computation definitions:</li>
+</ul>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">printN n <span class="fu">=</span>  putStrLn <span class="fu">.</span> (intercalate <span class="st">&quot; &quot;</span>) <span class="fu">.</span> (map show) <span class="fu">.</span> (take n)
+
+print10 <span class="fu">=</span> printN <span class="dv">10</span>
+
+print10 [<span class="dv">1</span><span class="fu">..</span>]</code></pre>
+</section><section class="slide level2">
+
+<p>... or even</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">fibs ::</span> [<span class="dt">Integer</span>]
+fibs <span class="fu">=</span> <span class="dv">1</span> <span class="fu">:</span> <span class="dv">1</span> <span class="fu">:</span> zipWith (<span class="fu">+</span>) fibs (tail fibs)</code></pre>
+</section><section id="space-leaks" class="slide level2">
+<h1>Space leaks</h1>
+<p>Laziness can be bad too - and space leaks are the effects we want to avoid.</p>
+<p>It is possible to specify strict computation when required.</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">stricter ::</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span>
+stricter a b <span class="fu">=</span> id <span class="fu">$!</span> a <span class="fu">+</span> b</code></pre>
+</section><section id="strong-typing" class="slide level2">
+<h1>Strong typing</h1>
+<ul>
+<li>algebraic data types</li>
+<li>uses Hindley-Milner type inference</li>
+<li><p><em>&quot;If it type-checks, it's most likely good&quot;</em></p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">countSame ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Int</span></code></pre>
+<ul>
+<li><code>a</code> is a variable type</li>
+<li>we only require to be able to compare two variables of type <code>a</code></li>
+<li>we only <strong>can</strong> compare the variables of type <code>a</code></li>
+<li>the same type a has to be passed to the 1st and 2nd params</li>
+</ul></li>
+</ul>
+</section><section id="pattern-matching" class="slide level2">
+<h1>Pattern matching</h1>
+<ul>
+<li>powerful alternative for many <code>if</code> statements</li>
+<li>functions are written in declarative manner</li>
+<li><p>destructuring matches</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">maybePlus ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span>
+maybePlus a (<span class="dt">Just</span> t) <span class="fu">=</span> <span class="dt">Just</span> <span class="fu">$</span> t <span class="fu">+</span> a
+maybePlus _ <span class="dt">Nothing</span> <span class="fu">=</span> <span class="dt">Nothing</span></code></pre></li>
+</ul>
+</section><section id="curried-functions" class="slide level2">
+<h1>Curried functions</h1>
+<ul>
+<li><p>all functions return either the end result or function to get it:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">f ::</span> a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c</code></pre></li>
+<li><p><code>f 3</code> has type <code>(b -&gt; c)</code>, which is a function itself.</p></li>
+</ul>
+</section><section id="asynchronous" class="slide level2">
+<h1>Asynchronous</h1>
+<ul>
+<li>GHC uses green threads (implemented in the VM)
+<ul>
+<li>events based execution - doesn't block the process</li>
+<li>all that is abstracted underneath the language</li>
+</ul></li>
+<li>green threads can be executed by any amount of OS threads, specified at compile time</li>
+</ul>
+</section><section id="modules" class="slide level2">
+<h1>Modules</h1>
+<ul>
+<li>export closely related functions</li>
+<li>hide private implementation</li>
+<li><p>directory path is mapped to the module name</p>
+<pre><code>Data.List</code></pre></li>
+</ul>
+</section></section>
+<section><section id="ecosystem" class="titleslide slide level1"><h1>Ecosystem</h1></section><section id="compiler-choices" class="slide level2">
+<h1>Compiler choices</h1>
+<ul>
+<li><strong>ghc</strong> is the current preference, has multiple backends (native, llvm, c)</li>
+<li><strong>jhc</strong> performs whole program optimisation (not maintained)</li>
+<li>...</li>
+</ul>
+</section><section id="ghci-repl" class="slide level2">
+<h1>ghci (repl)</h1>
+<ul>
+<li>check quickly before coding</li>
+</ul>
+</section><section id="packaging" class="slide level2">
+<h1>Packaging</h1>
+<ul>
+<li><strong>cabal</strong> - dependency manager and more</li>
+<li><strong>hackage</strong> - repository for haskell packages</li>
+<li><strong>hoogle</strong> - function search engine</li>
+<li><strong>hayoo</strong> - another search engine</li>
+</ul>
+</section><section id="tdd-tools" class="slide level2">
+<h1>TDD tools</h1>
+<ul>
+<li><strong>quickcheck</strong> - randomised testing framework for predefined properties</li>
+<li><strong>hspec</strong> - tdd support tool</li>
+</ul>
+</section><section id="hlint" class="slide level2">
+<h1>Hlint</h1>
+<ul>
+<li>detects code duplication</li>
+<li>detects point free improvements</li>
+<li>many more checks</li>
+</ul>
+</section></section>
+<section><section id="generic-language-constructs" class="titleslide slide level1"><h1>Generic language constructs</h1></section><section id="defining-data-types" class="slide level2">
+<h1>Defining data types</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">MyType</span> <span class="fu">=</span> <span class="dt">MyIntType</span> <span class="dt">Int</span> <span class="fu">|</span> <span class="dt">MyEmptyType</span> <span class="fu">|</span> <span class="dt">MyStringType</span> <span class="dt">String</span></code></pre>
+<p>Defines a new type <code>MyType</code> and provides three data constructors.</p>
+</section><section id="type-alias" class="slide level2">
+<h1>Type alias</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">Deck</span> <span class="fu">=</span> [<span class="dt">Card</span>]</code></pre>
+<p>Defines a type alias. The data can still be accessed using the original type.</p>
+</section><section id="newtype" class="slide level2">
+<h1>Newtype</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Deck</span> <span class="fu">=</span> <span class="dt">Deck</span> [<span class="dt">Card</span>]</code></pre>
+<p>A combination of <code>data</code> and <code>type</code> - the usage of the resulting type is that of a <code>data</code> type, however the runtime is of a type alias.</p>
+</section><section id="function-declaration" class="slide level2">
+<h1>Function declaration</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">myFunction ::</span> <span class="dt">Type</span>
+myFunction arguments <span class="fu">=</span> body</code></pre>
+<p>Defines a new function available within the module.</p>
+</section><section id="lambda-functions" class="slide level2">
+<h1>Lambda functions</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">map (\x <span class="ot">-&gt;</span> x<span class="fu">+</span><span class="dv">5</span>) [<span class="dv">1</span><span class="fu">..</span>]</code></pre>
+<p><code>\params -&gt; body</code> - defines a lambda function to use.</p>
+</section><section id="pattern-matching-1" class="slide level2">
+<h1>Pattern matching</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">fib ::</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span>
+fib <span class="dv">0</span> <span class="fu">=</span> <span class="dv">1</span>
+fib <span class="dv">1</span> <span class="fu">=</span> <span class="dv">1</span>
+fib n <span class="fu">=</span> fib (n<span class="fu">-</span><span class="dv">1</span>) <span class="fu">+</span> fib (n<span class="fu">-</span><span class="dv">2</span>)</code></pre>
+</section><section id="guards" class="slide level2">
+<h1>Guards!</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">alg ::</span> [<span class="dt">Integer</span>] <span class="ot">-&gt;</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span>
+alg (x<span class="fu">:</span>x&#39;<span class="fu">:</span>xs) a
+ <span class="fu">|</span> x <span class="fu">==</span> a <span class="fu">=</span> x&#39; <span class="fu">+</span> alg xs x&#39;
+ <span class="fu">|</span> otherwise <span class="fu">=</span> alg (x&#39;<span class="fu">:</span>xs) x
+alg [_] _ <span class="fu">=</span> <span class="dv">0</span>
+alg [] _ <span class="fu">=</span> <span class="dv">0</span></code></pre>
+<p>Allows computation in the matching.</p>
+</section><section id="case-..-of" class="slide level2">
+<h1>Case .. of</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">alg ::</span> [<span class="dt">Integer</span>] <span class="ot">-&gt;</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span>
+alg (x<span class="fu">:</span>x&#39;<span class="fu">:</span>xs) a <span class="fu">=</span> <span class="kw">case</span> x <span class="fu">==</span> a <span class="kw">of</span>
+                    <span class="dt">True</span> <span class="ot">-&gt;</span> x&#39; <span class="fu">+</span> alg xs x&#39;
+                    _ <span class="ot">-&gt;</span> alg (x&#39;<span class="fu">:</span>xs) x&#39;)
+alg [_] _ <span class="fu">=</span> <span class="dv">0</span>
+alg [] _ <span class="fu">=</span> <span class="dv">0</span></code></pre>
+<p>Pattern-matches in the code.</p>
+</section><section id="if" class="slide level2">
+<h1>If</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">alg ::</span> [<span class="dt">Integer</span>] <span class="ot">-&gt;</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span>
+alg (x<span class="fu">:</span>x&#39;<span class="fu">:</span>xs) a <span class="fu">=</span> <span class="kw">if</span> x <span class="fu">==</span> a <span class="kw">then</span> x&#39; <span class="fu">+</span> alg xs x&#39;
+                  <span class="kw">else</span> alg (x&#39;<span class="fu">:</span>xs) x&#39;
+alg [_] _ <span class="fu">=</span> <span class="dv">0</span>
+alg [] _ <span class="fu">=</span> <span class="dv">0</span></code></pre>
+</section><section id="let-..-in" class="slide level2">
+<h1>Let .. in</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">myFunction ::</span> <span class="dt">Int</span>
+myFunction <span class="fu">=</span> <span class="kw">let</span> x <span class="fu">=</span> <span class="dv">1</span>
+             <span class="kw">in</span> x <span class="fu">+</span> <span class="dv">1</span></code></pre>
+</section><section id="where" class="slide level2">
+<h1>Where</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">myFunction ::</span> <span class="dt">Int</span>
+myFunction <span class="fu">=</span> increasedX
+    <span class="kw">where</span> x <span class="fu">=</span> <span class="dv">1</span>
+          increasedX <span class="fu">=</span> x <span class="fu">+</span> <span class="dv">1</span></code></pre>
+</section><section id="do-notation" class="slide level2">
+<h1>Do notation</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">myFunction ::</span> <span class="dt">IO</span> <span class="dt">Int</span>
+myFunction <span class="fu">=</span> <span class="kw">do</span>
+    other <span class="ot">&lt;-</span> otherFunction
+    return <span class="fu">$</span> <span class="dv">1</span> <span class="fu">+</span> other</code></pre>
+</section><section id="let-inside-do" class="slide level2">
+<h1>Let inside do</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">myFunction ::</span> <span class="dt">IO</span> <span class="dt">Int</span>
+myFunction <span class="fu">=</span> <span class="kw">do</span>
+    <span class="kw">let</span> x <span class="fu">=</span> <span class="dv">1</span>
+    return x</code></pre>
+</section></section>
+<section><section id="hello-world" class="titleslide slide level1"><h1>Hello world</h1></section><section class="slide level2">
+
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">main ::</span> <span class="dt">IO</span>()
+main <span class="fu">=</span> putStrLn <span class="st">&quot;hello world&quot;</span></code></pre>
+</section><section id="the-do-notation" class="slide level2">
+<h1>The &quot;do&quot; notation</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">worldType ::</span> <span class="dt">IO</span> <span class="dt">String</span>
+worldType <span class="fu">=</span> return <span class="st">&quot;haskell&quot;</span>
+
+<span class="ot">main ::</span> <span class="dt">IO</span>()
+main <span class="fu">=</span> <span class="kw">do</span>
+    whatWorld <span class="ot">&lt;-</span> worldType
+    putStrLn <span class="fu">$</span> <span class="st">&quot;hello &quot;</span> <span class="fu">++</span> whatWorld <span class="fu">++</span> <span class="st">&quot; world&quot;</span></code></pre>
+<p>Note: indentation matters.</p>
+</section></section>
+<section><section id="type-system" class="titleslide slide level1"><h1>Type system</h1></section><section id="whats-a-type-class" class="slide level2">
+<h1>What's a type class?</h1>
+<ul>
+<li>similar to interfaces/abstract classes in OO</li>
+<li>can have default implementation</li>
+</ul>
+</section><section class="slide level2">
+
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span>  (<span class="dt">Eq</span> a) <span class="ot">=&gt;</span> <span class="dt">Ord</span> a  <span class="kw">where</span>
+<span class="ot">    compare              ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Ordering</span>
+    (<span class="fu">&lt;</span>), (<span class="fu">&lt;=</span>), (<span class="fu">&gt;</span>),<span class="ot"> (&gt;=) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span>
+    max,<span class="ot"> min             ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+
+    compare x y <span class="fu">=</span> <span class="kw">if</span> x <span class="fu">==</span> y <span class="kw">then</span> <span class="dt">EQ</span>
+                  <span class="kw">else</span> <span class="kw">if</span> x <span class="fu">&lt;=</span> y <span class="kw">then</span> <span class="dt">LT</span>
+                  <span class="kw">else</span> <span class="dt">GT</span>
+
+    x <span class="fu">&lt;</span>  y <span class="fu">=</span> <span class="kw">case</span> compare x y <span class="kw">of</span> { <span class="dt">LT</span> <span class="ot">-&gt;</span> <span class="dt">True</span>;  _ <span class="ot">-&gt;</span> <span class="dt">False</span> }
+    x <span class="fu">&lt;=</span> y <span class="fu">=</span> <span class="kw">case</span> compare x y <span class="kw">of</span> { <span class="dt">GT</span> <span class="ot">-&gt;</span> <span class="dt">False</span>; _ <span class="ot">-&gt;</span> <span class="dt">True</span> }
+    x <span class="fu">&gt;</span>  y <span class="fu">=</span> <span class="kw">case</span> compare x y <span class="kw">of</span> { <span class="dt">GT</span> <span class="ot">-&gt;</span> <span class="dt">True</span>;  _ <span class="ot">-&gt;</span> <span class="dt">False</span> }
+    x <span class="fu">&gt;=</span> y <span class="fu">=</span> <span class="kw">case</span> compare x y <span class="kw">of</span> { <span class="dt">LT</span> <span class="ot">-&gt;</span> <span class="dt">False</span>; _ <span class="ot">-&gt;</span> <span class="dt">True</span> }
+
+    max x y <span class="fu">=</span> <span class="kw">if</span> x <span class="fu">&lt;=</span> y <span class="kw">then</span> y <span class="kw">else</span> x
+    min x y <span class="fu">=</span> <span class="kw">if</span> x <span class="fu">&lt;=</span> y <span class="kw">then</span> x <span class="kw">else</span> y</code></pre>
+<ul>
+<li>choose which function to implement - <code>compare</code> or <code>(&lt;=)</code></li>
+</ul>
+</section><section id="deriving-a-type-class" class="slide level2">
+<h1>Deriving a type class</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">MyType</span> <span class="fu">=</span> <span class="dt">MyType</span> <span class="dt">Int</span> <span class="kw">deriving</span> <span class="dt">Eq</span>
+
+<span class="kw">instance</span> <span class="dt">Ord</span> <span class="dt">MyType</span> <span class="kw">where</span>
+    (<span class="dt">MyType</span> a) <span class="fu">&lt;=</span> (<span class="dt">MyType</span> b) <span class="fu">=</span> a <span class="fu">&lt;=</span> b</code></pre>
+<p><em>(in this case, simply <code>deriving (Eq, Ord)</code> would also have worked)</em></p>
+</section><section id="usage-in-functions" class="slide level2">
+<h1>Usage in functions</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">findLowerThan ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]
+findLowerThan measure <span class="fu">=</span> filter (<span class="fu">&lt;</span> measure)</code></pre>
+</section></section>
+<section><section id="elements-of-functional-programming" class="titleslide slide level1"><h1>Elements of functional programming</h1></section><section id="composing-two-functions" class="slide level2">
+<h1>Composing two functions</h1>
+<p>In haskell, it is possible to compose two functions to one using the <code>(.)</code> operator:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">foo ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+foo <span class="fu">=</span> show
+
+<span class="ot">bar ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> [<span class="dt">String</span>]
+bar x <span class="fu">=</span> [x]
+
+foobar <span class="fu">=</span> bar <span class="fu">.</span> foo
+
+foobar <span class="dv">5</span>  <span class="co">-- [&quot;5&quot;]</span></code></pre>
+</section><section class="slide level2">
+
+<p>...it is not a language construct - like many others, it is a simple function, defined in the <code>Prelude</code>:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(.) ::</span> (b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> c
+(<span class="fu">.</span>) f g <span class="fu">=</span> \x <span class="ot">-&gt;</span> f (g x)</code></pre>
+</section><section id="monoids" class="slide level2">
+<h1>Monoids</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Monoid</span> a <span class="kw">where</span>
+<span class="ot">        mempty  ::</span> a
+        <span class="co">-- ^ Identity of &#39;mappend&#39;</span>
+<span class="ot">        mappend ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+        <span class="co">-- ^ An associative operation</span>
+<span class="ot">        mconcat ::</span> [a] <span class="ot">-&gt;</span> a
+        mconcat <span class="fu">=</span> foldr mappend mempty</code></pre>
+</section><section id="monoid-laws" class="slide level2">
+<h1>Monoid laws</h1>
+<ul>
+<li>Identity law
+<ul>
+<li><code>mappend mempty x</code> = <code>x</code></li>
+<li><code>mappend x mempty</code> = <code>x</code></li>
+</ul></li>
+<li>Associative law
+<ul>
+<li><code>mappend x (mappend y z)</code> = <code>mappend (mappend x y) z</code></li>
+</ul></li>
+</ul>
+</section><section id="monoid-example" class="slide level2">
+<h1>Monoid example</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">Sum</span> <span class="dv">4</span> <span class="fu">&lt;&gt;</span> <span class="dt">Sum</span> <span class="dv">3</span> <span class="fu">&lt;&gt;</span> <span class="dt">Sum</span> <span class="dv">2</span> <span class="fu">&lt;&gt;</span> <span class="dt">Sum</span> <span class="dv">1</span>
+<span class="co">--    Sum{getSum = 10}</span></code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">mconcat <span class="fu">.</span> (map <span class="dt">Sum</span>) <span class="fu">$</span> [<span class="dv">1</span><span class="fu">..</span><span class="dv">4</span>]
+<span class="co">--    Sum{getSum = 10}</span></code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">mconcat <span class="fu">.</span> (map <span class="fu">$</span> <span class="dt">Just</span> <span class="fu">.</span> <span class="dt">Sum</span>) <span class="fu">$</span> [<span class="dv">1</span><span class="fu">..</span><span class="dv">4</span>]
+<span class="co">--    Just (Sum{getSum = 10})</span></code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">Just</span> (<span class="dt">Sum</span> <span class="dv">10</span>) <span class="fu">&lt;&gt;</span> <span class="dt">Nothing</span> <span class="fu">&lt;&gt;</span> <span class="dt">Just</span> (<span class="dt">Sum</span> <span class="dv">5</span>)
+<span class="co">--    Just (Sum{getSum = 15})</span></code></pre>
+</section><section id="higher-order-functions" class="slide level2">
+<h1>Higher order functions</h1>
+<p>Wikipedia: <em>&quot;In mathematics and computer science, a higher-order function is a function that does at least one of the following:</em></p>
+<ul>
+<li><em>takes one or more functions as an input</em></li>
+<li><em>outputs a function&quot;</em></li>
+</ul>
+<p>For example, map and fold (reduce) are very common in functional paradigm.</p>
+</section><section id="boxes-and-computation-context" class="slide level2">
+<h1>Boxes and computation context</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">MyType</span> a <span class="fu">=</span> <span class="dt">MyType</span> {<span class="ot"> usedValue ::</span> a }</code></pre>
+<ul>
+<li>a box, as an analogy, is a useful explanation of a parametrised type</li>
+<li><code>MyType</code> is a box for any type <code>a</code></li>
+</ul>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">myFunction ::</span> f a <span class="ot">-&gt;</span> f a</code></pre>
+<ul>
+<li><code>f</code> is a variable &quot;box&quot; where we don't specify its type</li>
+<li>the only property specified in the function definition is that the type has to have a type parameter</li>
+</ul>
+</section><section id="functors" class="slide level2">
+<h1>Functors</h1>
+<ul>
+<li>functor allows mapping over them</li>
+<li><p>definition:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Functor</span> f <span class="kw">where</span>
+<span class="ot">  fmap ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> f a <span class="ot">-&gt;</span> f b</code></pre></li>
+</ul>
+</section><section id="functor-laws" class="slide level2">
+<h1>Functor laws</h1>
+<ul>
+<li>identity:
+<ul>
+<li><code>fmap id</code> = <code>id</code></li>
+</ul></li>
+<li>composition:
+<ul>
+<li><code>fmap (p . q)</code> = <code>(fmap p) . (fmap q)</code></li>
+</ul></li>
+</ul>
+<aside class="notes">
+<ul>
+<li><code>f</code> is the computation context</li>
+<li>fmap takes a function, and a value in the context</li>
+<li>then fmap applies the function to an unwrapped value</li>
+<li>and returns wrapped result</li>
+</ul>
+</aside>
+</section><section id="example" class="slide level2">
+<h1>Example</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">numbers <span class="fu">=</span> [<span class="dv">1</span><span class="fu">..</span><span class="dv">10</span>]
+strings <span class="fu">=</span> fmap show numbers
+<span class="co">-- [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;, &quot;7&quot;, &quot;8&quot;, &quot;9&quot;, &quot;10&quot;]</span>
+
+notSureIfNumber <span class="fu">=</span> <span class="dt">Just</span> <span class="dv">9</span>
+notSureIfString <span class="fu">=</span> fmap show notSureIfNumber
+<span class="co">-- Just &quot;9&quot;</span>
+
+notSureIfNumber <span class="fu">=</span> <span class="dt">Nothing</span>
+notSureIfString <span class="fu">=</span> fmap show notSureIfNumber
+<span class="co">-- Nothing</span></code></pre>
+</section><section id="applicative-functors" class="slide level2">
+<h1>Applicative functors</h1>
+<ul>
+<li>applicative functor is a functor accepting wrapped functions</li>
+<li><p>it's definition:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Functor</span> f <span class="ot">=&gt;</span> <span class="dt">Applicative</span> f <span class="kw">where</span>
+<span class="ot">    pure ::</span> a <span class="ot">-&gt;</span> f a
+<span class="ot">    (&lt;*&gt;) ::</span> f (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> f a <span class="ot">-&gt;</span> f b
+<span class="ot">    (*&gt;) ::</span> f a <span class="ot">-&gt;</span> f b <span class="ot">-&gt;</span> f b
+<span class="ot">    (&lt;*) ::</span> f a <span class="ot">-&gt;</span> f b <span class="ot">-&gt;</span> f a</code></pre></li>
+</ul>
+<aside class="notes">
+<ul>
+<li>same as functor, however allows the function to be wrapped too!</li>
+<li>unwraps the function and the argument</li>
+<li>&quot;unwrapping&quot; means to execute the context rules, take the value</li>
+<li>applies the function</li>
+<li>wraps the result back</li>
+</ul>
+</aside>
+</section><section id="applicative-functor-example" class="slide level2">
+<h1>Applicative functor example</h1>
+<ul>
+<li><p>apply a &quot;boxed&quot; function to a &quot;boxed&quot; value:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">Just</span> (<span class="fu">+</span><span class="dv">1</span>) <span class="fu">&lt;*&gt;</span> <span class="dt">Just</span> <span class="dv">1</span>                 <span class="co">-- Just 2</span></code></pre></li>
+<li><p>apply a binary function:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">Just</span> (<span class="fu">+</span>) <span class="fu">&lt;*&gt;</span> <span class="dt">Just</span> <span class="dv">1</span> <span class="fu">&lt;*&gt;</span> <span class="dt">Just</span> <span class="dv">4</span>       <span class="co">-- Just 5</span></code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">Just</span> (<span class="fu">+</span>) <span class="fu">&lt;*&gt;</span> <span class="dt">Just</span> <span class="dv">1</span> <span class="fu">&lt;*&gt;</span> <span class="dt">Nothing</span>      <span class="co">-- Nothing</span></code></pre></li>
+<li><p>a shorthand for fmap:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">(<span class="fu">+</span>) <span class="fu">&lt;$&gt;</span> <span class="dt">Just</span> <span class="dv">1</span> <span class="fu">&lt;*&gt;</span> <span class="dt">Just</span> <span class="dv">4</span>            <span class="co">-- Just 5</span></code></pre></li>
+</ul>
+</section><section id="monads" class="slide level2">
+<h1>Monads</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span>  <span class="dt">Monad</span> m  <span class="kw">where</span>
+<span class="ot">    return      ::</span> a <span class="ot">-&gt;</span> m a
+<span class="ot">    (&gt;&gt;=)       ::</span> m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> m b) <span class="ot">-&gt;</span> m b
+<span class="ot">    (&gt;&gt;)        ::</span> m a <span class="ot">-&gt;</span> m b <span class="ot">-&gt;</span> m b
+
+    m <span class="fu">&gt;&gt;</span> k      <span class="fu">=</span> m <span class="fu">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span> k</code></pre>
+<aside class="notes">
+<ul>
+<li><code>return</code> - Inject a value into the monadic type.</li>
+<li><code>(&gt;&gt;=)</code> - Sequentially compose two actions, passing any value produced by the first as an argument to the second.</li>
+<li><code>(&gt;&gt;)</code> - Sequentially compose two actions, discarding any value produced by the first, like sequencing operators (such as the semicolon) in imperative languages.</li>
+</ul>
+</aside>
+</section><section id="monad-laws" class="slide level2">
+<h1>Monad laws</h1>
+<ul>
+<li>identity:
+<ul>
+<li><code>return a &gt;&gt;= k</code> = <code>k a</code></li>
+<li><code>m &gt;&gt;= return</code> = <code>m</code></li>
+</ul></li>
+<li>associativity:
+<ul>
+<li><code>m &gt;&gt;= (\x -&gt; k x &gt;&gt;= h)</code> = <code>(m &gt;&gt;= k) &gt;&gt;= h</code></li>
+</ul></li>
+</ul>
+</section><section id="maybe-monad" class="slide level2">
+<h1>Maybe monad</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">Just</span> <span class="dv">1</span> <span class="fu">&gt;&gt;=</span> (\a <span class="ot">-&gt;</span> return <span class="fu">$</span> a<span class="fu">+</span><span class="dv">1</span>)  <span class="co">-- or just &quot;Just 1 &gt;&gt;= return . (+1)&quot;</span>
+<span class="co">-- Just 2</span></code></pre>
+<p>The <code>do</code> notation is just syntactic sugar over <code>&gt;&gt;=</code>!</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">computation ::</span> <span class="dt">Maybe</span> <span class="dt">Int</span>
+computation <span class="fu">=</span> <span class="kw">do</span>
+    a <span class="ot">&lt;-</span> <span class="dt">Just</span> <span class="dv">1</span>
+    return <span class="fu">$</span> a <span class="fu">+</span> <span class="dv">1</span></code></pre>
+</section><section id="io-monad" class="slide level2">
+<h1>IO monad</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">echo ::</span> <span class="dt">IO</span> ()
+echo <span class="fu">=</span> getLine <span class="fu">&gt;&gt;=</span> putStrLn</code></pre>
+</section></section>
+<section><section id="extras" class="titleslide slide level1"><h1>Extras</h1></section><section id="lenses" class="slide level2">
+<h1>lenses</h1>
+</section><section id="monad-transformers" class="slide level2">
+<h1>monad transformers</h1>
+</section><section id="extensible-effects" class="slide level2">
+<h1>extensible effects</h1>
+</section><section id="free-monads" class="slide level2">
+<h1>free monads</h1>
+</section><section id="category-theory" class="slide level2">
+<h1>category theory</h1>
+</section></section>
+<section><section id="summary" class="titleslide slide level1"><h1>Summary</h1></section><section id="youve-seen" class="slide level2">
+<h1>You've seen</h1>
+<ul>
+<li>overview of haskell ecosystem</li>
+<li>basic language constructs</li>
+<li>functional programming constructs</li>
+</ul>
+</section><section id="where-to-next" class="slide level2">
+<h1>Where to next?</h1>
+<ul>
+<li>code!</li>
+<li>learn you a haskell for great good</li>
+<li>real world haskell</li>
+<li>/r/haskell</li>
+<li>code more!</li>
+</ul>
+</section><section id="thanks" class="slide level2">
+<h1>Thanks</h1>
+<p>Any questions?</p>
+</section></section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+		//			{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+		//			{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+		//			{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+	</body>
+</html>

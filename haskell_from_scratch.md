@@ -1,136 +1,141 @@
-% Haskell from scratch
-% Sarunas Valaskevicius
-% November 22, 2014
+name: inverse
+layout: true
+class: inverse
 
-# Haskell from scratch
+---
+class: middle
+# Introduction to Functional Programming
 
-## About me
+---
+## What to expect from this course
 
-- started using Haskell a few years ago
-- writing in Haskell at least several times a week
-- still sometimes puzzled by Category Theory
+- an overview of Functional Programming and basic concepts
+- basic Haskell syntax (yes we'll use Haskell!)
+- being able to build a program!
 
-\
-
-Sarunas Valaskevicius @ Inviqa
-
-## What to expect
-
-- an overview of the language
-- basic haskell syntax
-- basic functional programming patterns
+---
 
 # Functional programming
 
-## What is it?
+It is simply programming with functions.
 
-- *a style of building the structure and elements of computer programs, that treats computation as the evaluation of mathematical functions and avoids changing state and mutable data.* [Wikipedia]
-- It is a *declarative programming paradigm*, which means programming is done with expressions
-- *function* as first class citizen
-- breaks data encapsulation as perceived in OO, aims to decouple *behaviour* for better reusability
-    - data can still be bound by currying or closures
+A function is:
 
-<div class="notes">
-- focuses on behaviour
-- declare the functional relation, rather than "tell computer how to do stuff"
-- can functions pass around, call from another context, even return them
-</div>
+- a description of a computation (a mapping from it's input values to an output value);
+- a value that can be passed over (or be returned from) to another function.
 
-## You've used functional elements already
-- map, reduce;
-- closures;
-- promise pattern in javascript..
+```haskell
+myFunction :: TypeOfArg1 -> TypeOfArg2 -> ... -> ReturnType
+myFunction arg1 arg2 ... = body
+```
 
-# About haskell
+We can call the function like this:
 
-## Generic programming language
+```haskell
+myFunction arg1 arg2
+```
 
-- desktop applications
-- server side software
-- known to be especially good at DSLs
+Functions can also be *pure* and *total*.
 
-<div class="notes">
-Many examples for *desktop* include:
-- xmonad - the famous window manager
-- pandoc - document converter
+---
+## Pure functions
+A function where the return value can only be affected by its input paramaters, and it does not
+produce any observable side-effect is called a *pure* function - the only effect of the function is
+the produced return value.
 
-Serverside:
-- yesod - web framework
-- many companies include *some* haskell based component in their stack
-</div>
+- this property is called *referential transparency*
+- it allows *equational reasoning*:
 
-## Purity and referential transparency
-- function with no side effects is pure
-- this property is called referential transparency
-- it allows equational reasoning:
+```haskell
+y = f x
+g y == g (f x)
+```
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-y = f x
-g = h y y
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Or, if we know that `f x` is 42, we could simply replace `g y` with `g 42` and be sure that the
+program still works exactly the same.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-g = h (f x) (f x)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---
+## Total functions
+A function is called *total* when it has a return value for every combination of its possible
+input values.
 
+For example, a total function could look like this:
+```haskell
+f :: Integer -> Integer
+f x = 2*x
+```
 
-## "No side effects"
-- all data is passed immutably
-- a function with same parameters will always return the same result
-- reduces the risk of bugs - all changes to data are explicit
+Another example, where the function is only defined for just some input values, is **not** a total function:
 
+```haskell
+f :: Integer -> Integer -> Integer
+f x y = x `div` y
+```
 
-## Laziness
+```
+> f 4 2
+2
+> f 4 0
+*** Exception: divide by zero
+```
+
+---
+## Lazy evaluation
+
 - most programming languages use eager evaluation
 - but some start to implement lazy *generators*
-- haskell is **lazy**: it will only compute a value when its actually used
-- problematic in microcontroller space
-- very convenient in generic programming - allows infinite computation definitions:
+- haskell is **lazy**: it will only compute a value when it is actually used
+- memory requirements are less explicit and more difficult to reason about
+- however, it is very convenient - allows "infinite" computation definitions (e.g. an infite list is
+  expressed as `[1..]`):
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-printN n =  putStrLn . (intercalate " ") . (map show) . (take n)
-
-print10 = printN 10
-
-print10 [1..]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```haskell
+> take 5 [1..]
+[1,2,3,4,5]
+```
 
 ---
 
 ... or even
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+```haskell
 fibs :: [Integer]
 fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
-## Space leaks
+.pull-right[![Right-aligned image](assets/fibonacci.jpg)]
 
-Laziness can be bad too - and space leaks are the effects we want to avoid.
+This defines a Fibonacci sequence, as an infinite recursive function:
 
-It is possible to specify strict computation when required.
+1. it starts with `[1, 1]`
+2. then it continues by adding the same Fibonacci sequence, with the same one, shifted by one:
+`zipWith (+) fibs (tail fibs)`
+
+When calculating, e.g. `take 10 fibs`, it will return `[1,1,2,3,5,8,13,21,34,55]`, where:
+
+- 2 was generated as 1+1 (sum of first and the second values of `fibs`)
+- once we have 2, it generates the next element - this time `1 + 2`
+- and so on, until we get 55 - which is the 10th element.
+
+???
+
+As we only requested 10 elements, Haskell
+  will not calculate the other ones and so won't be stuck calculating the sequence numbers forever, even
+  though there is no exit condition defined in the function `fibs`.
 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-stricter :: Integer -> Integer -> Integer
-stricter a b = id $! a + b
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---
 
 ## Strong typing
-- algebraic data types
-- uses Hindley-Milner type inference
+- for convenience, most compilers implement type inference
 - *"If it type-checks, it's most likely good"*
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-    countSame :: Eq a => a -> [a] -> Int
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---
+### Algebraic data types
 
-    - `a` is a variable type
-    - we only require to be able to compare two variables of type `a`
-    - we only **can** compare the variables of type `a`
-    - the same type a has to be passed to the 1st and 2nd params
 
-## Pattern matching
+---
+### Pattern matching
 - powerful alternative for many `if` statements
 - functions are written in declarative manner
 - destructuring matches
@@ -141,7 +146,8 @@ stricter a b = id $! a + b
     maybePlus _ Nothing = Nothing
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## Curried functions
+---
+### Curried functions
 - all functions return either the end result or function to get it:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -150,52 +156,19 @@ stricter a b = id $! a + b
 
 - `f 3` has type `(b -> c)`, which is a function itself.
 
-## Asynchronous
-- GHC uses green threads (implemented in the VM)
-    - events based execution - doesn't block the process
-    - all that is abstracted underneath the language
-- green threads can be executed by any amount of OS threads, specified at compile time
-
-## Modules
+---
+### Modules
 - export closely related functions
 - hide private implementation
 - directory path is mapped to the module name
 
         Data.List
 
-
-# Ecosystem
-
-## Compiler choices
-
-- **ghc** is the current preference, has multiple backends (native, llvm, c)
-- **jhc** performs whole program optimisation (not maintained)
-- ...
-
-## ghci (repl)
-
-- check quickly before coding
-
-## Packaging
-
-- **cabal** - dependency manager and more
-- **hackage** - repository for haskell packages
-- **hoogle** - function search engine
-- **hayoo** - another search engine
-
-## TDD tools
-
-- **quickcheck** - randomised testing framework for predefined properties
-- **hspec** - tdd support tool
-
-## Hlint
-
-- detects code duplication
-- detects point free improvements
-- many more checks
+---
 
 # Generic language constructs
 
+---
 ## Defining data types
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -204,6 +177,7 @@ data MyType = MyIntType Int | MyEmptyType | MyStringType String
 
 Defines a new type `MyType` and provides three data constructors.
 
+---
 ## Type alias
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -212,6 +186,7 @@ type Deck = [Card]
 
 Defines a type alias. The data can still be accessed using the original type.
 
+---
 ## Newtype
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -221,15 +196,7 @@ newtype Deck = Deck [Card]
 A combination of `data` and `type` - the usage of the resulting type is
 that of a `data` type, however the runtime is of a type alias.
 
-## Function declaration
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-myFunction :: Type
-myFunction arguments = body
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Defines a new function available within the module.
-
+---
 ## Lambda functions
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -238,6 +205,7 @@ map (\x -> x+5) [1..]
 
 `\params -> body` - defines a lambda function to use.
 
+---
 ## Pattern matching
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -247,6 +215,7 @@ fib 1 = 1
 fib n = fib (n-1) + fib (n-2)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## Guards!
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -260,6 +229,7 @@ alg [] _ = 0
 
 Allows computation in the matching.
 
+---
 ## Case .. of
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -273,6 +243,7 @@ alg [] _ = 0
 
 Pattern-matches in the code.
 
+---
 ## If
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -283,6 +254,7 @@ alg [_] _ = 0
 alg [] _ = 0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## Let .. in
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -291,6 +263,7 @@ myFunction = let x = 1
              in x + 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## Where
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -300,6 +273,7 @@ myFunction = increasedX
           increasedX = x + 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## Do notation
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -309,6 +283,7 @@ myFunction = do
     return $ 1 + other
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## Let inside do
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -318,15 +293,16 @@ myFunction = do
     return x
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 # Hello world
 
-----
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
 main :: IO()
 main = putStrLn "hello world"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## The "do" notation
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -341,36 +317,45 @@ main = do
 
 Note: indentation matters.
 
+---
 # Type system
 
+---
 ## What's a type class?
 
 - similar to interfaces/abstract classes in OO
 - can have default implementation
 
+```haskell
+    countSame :: Eq a => a -> [a] -> Int
+```
+
+- `a` is a variable type - we can call it with any types that satisfy the constraints (that have an
+  instance of `Eq` type class defined for them).
+- `Eq` is a typeclass that we require for the type `a`. It is defined by the haskell library, and 
+specifies that the equality functions for the type `a` are defined (`==`), otherwise it will not
+compile.
+
+Given the above function signature, we can say that:
+
+- we only require to be able to compare variables of type `a`
+- we only **can** compare the variables of type `a`
+- the same type `a` has to be passed to the 1st and 2nd params
+
 ---
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-class  (Eq a) => Ord a  where
-    compare              :: a -> a -> Ordering
-    (<), (<=), (>), (>=) :: a -> a -> Bool
-    max, min             :: a -> a -> a
+class  Eq a  where
+    (==), (/=)           :: a -> a -> Bool
 
-    compare x y = if x == y then EQ
-                  else if x <= y then LT
-                  else GT
-
-    x <  y = case compare x y of { LT -> True;  _ -> False }
-    x <= y = case compare x y of { GT -> False; _ -> True }
-    x >  y = case compare x y of { GT -> True;  _ -> False }
-    x >= y = case compare x y of { LT -> False; _ -> True }
-
-    max x y = if x <= y then y else x
-    min x y = if x <= y then x else y
+    x /= y               = not (x == y)
+    x == y               = not (x /= y)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- choose which function to implement - `compare` or `(<=)`
+- we can choose which function to implement - `==` or `/=`, because the other one will then be able
+  to use the default behaviour of negating the implemented one.
 
+---
 ## Deriving a type class
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -382,6 +367,7 @@ instance Ord MyType where
 
 *(in this case, simply `deriving (Eq, Ord)` would also have worked)*
 
+---
 ## Usage in functions
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -389,8 +375,10 @@ findLowerThan :: Ord a => a -> [a] -> [a]
 findLowerThan measure = filter (< measure)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 # Elements of functional programming
 
+---
 ## Composing two functions
 
 In haskell, it is possible to compose two functions to one using the `(.)` operator:
@@ -416,6 +404,39 @@ foobar 5  -- ["5"]
 (.) f g = \x -> f (g x)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+---
+## Higher order functions
+
+Wikipedia: *"In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
+
+- *takes one or more functions as an input*
+- *outputs a function"*
+
+For example, map and fold (reduce) are very common in functional paradigm.
+
+---
+## Boxes and computation context
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+data MyType a = MyType { usedValue :: a }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- a box, as an analogy, is a useful explanation of a parametrised type
+- `MyType` is a box for any type `a`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+myFunction :: f a -> f a
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `f` is a variable "box" where we don't specify its type
+- the only property specified in the function definition is that the type has to have a type parameter
+
+
+
+
+
+---
 ## Monoids
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -428,6 +449,7 @@ class Monoid a where
         mconcat = foldr mappend mempty
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## Monoid laws
 
 - Identity law
@@ -436,6 +458,7 @@ class Monoid a where
 - Associative law
     - `mappend x (mappend y z)` = `mappend (mappend x y) z`
 
+---
 ## Monoid example
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -458,31 +481,8 @@ Just (Sum 10) <> Nothing <> Just (Sum 5)
 --    Just (Sum{getSum = 15})
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## Higher order functions
 
-Wikipedia: *"In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
-
-- *takes one or more functions as an input*
-- *outputs a function"*
-
-For example, map and fold (reduce) are very common in functional paradigm.
-
-## Boxes and computation context
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-data MyType a = MyType { usedValue :: a }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- a box, as an analogy, is a useful explanation of a parametrised type
-- `MyType` is a box for any type `a`
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-myFunction :: f a -> f a
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- `f` is a variable "box" where we don't specify its type
-- the only property specified in the function definition is that the type has to have a type parameter
-
+---
 ## Functors
 
 - functor allows mapping over them
@@ -494,6 +494,7 @@ myFunction :: f a -> f a
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+---
 ## Functor laws
 
 - identity:
@@ -508,6 +509,7 @@ myFunction :: f a -> f a
 - and returns wrapped result
 </div>
 
+---
 ## Example
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -525,6 +527,7 @@ notSureIfString = fmap show notSureIfNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+---
 ## Applicative functors
 
 - applicative functor is a functor accepting wrapped functions
@@ -546,6 +549,7 @@ notSureIfString = fmap show notSureIfNumber
 - wraps the result back
 </div>
 
+---
 ## Applicative functor example
 
 - apply a "boxed" function to a "boxed" value:
@@ -571,6 +575,7 @@ notSureIfString = fmap show notSureIfNumber
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+---
 ## Monads
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -588,6 +593,7 @@ class  Monad m  where
 - `(>>)` - Sequentially compose two actions, discarding any value produced by the first, like sequencing operators (such as the semicolon) in imperative languages.
 </div>
 
+---
 ## Monad laws
 
 - identity:
@@ -596,6 +602,7 @@ class  Monad m  where
 - associativity:
     - `m >>= (\x -> k x >>= h)`  =  `(m >>= k) >>= h`
 
+---
 ## Maybe monad
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -612,6 +619,7 @@ computation = do
     return $ a + 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+---
 ## IO monad
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
@@ -619,22 +627,17 @@ echo :: IO ()
 echo = getLine >>= putStrLn
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Extras
-
-## lenses
-## monad transformers
-## extensible effects
-## free monads
-## category theory
-
+---
 # Summary
 
+---
 ## You've seen
 
 - overview of haskell ecosystem
 - basic language constructs
 - functional programming constructs
 
+---
 ## Where to next?
 
 - code!
@@ -643,6 +646,7 @@ echo = getLine >>= putStrLn
 - /r/haskell
 - code more!
 
+---
 ## Thanks
 
 Any questions?

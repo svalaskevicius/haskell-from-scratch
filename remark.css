@@ -32,7 +32,7 @@ code {
     background: #e7e8e2;
     border-radius: 5px;
 }
-.remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+.remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; white-space: nowrap;}
 .remark-code-line-highlighted     { background-color: #373832; }
 .pull-left {
     float: left;
@@ -40,7 +40,7 @@ code {
 }
 .pull-right {
     float: right;
-    width: 47%;
+    width: 38%;
 }
 .pull-right ~ p {
     clear: both;
@@ -67,6 +67,7 @@ code {
     padding-left: 0.4em;
     padding-right: 0.4em;
     border-radius: 1px;
+    white-space: nowrap;
 }
 .inverse h1, .inverse h2 {
     color: #f3f3f3;

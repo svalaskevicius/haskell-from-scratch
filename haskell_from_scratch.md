@@ -80,6 +80,51 @@ f x y = x `div` y
 ```
 
 ---
+## Defining data types
+
+```haskell
+data MyType = MyIntType Int | MyEmptyType | MyStringType String
+```
+
+Defines a new type `MyType` and provides three data constructors:
+ - `MyIntType` has one Integer parameter
+ - `MyEmptyType` has no parameters
+ - `MyStringType` has one String parameter
+
+
+```haskell
+> let x = MyIntType 1
+> :t x
+x :: MyType
+```
+
+---
+## List
+
+A data structure that keeps a list of elements of the same type.
+
+```haskell
+data List a = Nil | Cons a (List a)
+```
+
+A list can either be empty list `Nil`, or an element `a` prepended `Cons` to a list of the same type
+elements `(List a)`.
+
+A list of type `a` in Haskell is denoted as `[a]`: `Nil` is represented as `[]` and `Cons` - `:`.
+
+```haskell
+> [1, 2, 3]
+[1,2,3]
+> 1 : 2: 3 : []
+[1,2,3]
+```
+
+Some common functions:
+ - `head [1, 2, 3] = 1`
+ - `tail [1, 2, 3] = [2, 3]`
+ - `take 2 [1, 2, 3] = [1, 2]`
+
+---
 ## Lazy evaluation
 
 - most programming languages use eager evaluation
@@ -105,78 +150,196 @@ fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 
 .pull-right[![Right-aligned image](assets/fibonacci.jpg)]
 
-This defines a Fibonacci sequence, as an infinite recursive function:
-
-1. it starts with `[1, 1]`
-2. then it continues by adding the same Fibonacci sequence, with the same one, shifted by one:
-`zipWith (+) fibs (tail fibs)`
+This defines a Fibonacci sequence, as an infinite recursive function.
 
 When calculating, e.g. `take 10 fibs`, it will return `[1,1,2,3,5,8,13,21,34,55]`, where:
 
-- 2 was generated as 1+1 (sum of first and the second values of `fibs`)
-- once we have 2, it generates the next element - this time `1 + 2`
-- and so on, until we get 55 - which is the 10th element.
+1. it starts with `[1, 1]`
+2. 2 was generated as 1+1 (sum of first and the second values of `fibs`)
+3. once we have 2, it generates the next element - this time `1 + 2`
+4. and so on, until we get 55 - which is the 10th element.
 
-???
-
-As we only requested 10 elements, Haskell
-  will not calculate the other ones and so won't be stuck calculating the sequence numbers forever, even
-  though there is no exit condition defined in the function `fibs`.
-
-
----
-
-## Strong typing
-- for convenience, most compilers implement type inference
-- *"If it type-checks, it's most likely good"*
-
----
-### Algebraic data types
+As we only requested 10 elements, Haskell will stop after calculating the 10th element and will
+not be stuck calculating the sequence numbers forever, even 
+though there is no exit condition defined in the function `fibs`.
 
 
 ---
-### Pattern matching
+
+# Going further
+
+Let's look as some more advanced features provided by Haskell:
+
+ - Pattern matching
+ - Strong type system
+ - Curried functions
+ - Lambda functions
+ - Composing two functions
+ - Higher order functions
+
+---
+## Pattern matching
 - powerful alternative for many `if` statements
 - functions are written in declarative manner
 - destructuring matches
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-    maybePlus :: Int -> Maybe Int -> Maybe Int
-    maybePlus a (Just t) = Just $ t + a
-    maybePlus _ Nothing = Nothing
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```haskell
+maybeDiv :: Int -> Int -> Maybe Int
+maybeDiv _ 0 = Nothing
+maybeDiv a b = Just (a `div` b)
+```
+
+If the second parameter is `0`, the function will match the first case - `maybeDiv _ 0` and
+return `Nothing` as the result - parameters marked with `_` match everything and are ignored. 
+For all other cases, the second line will match as the default case:
+`maybeDiv a b` and capture the argument values as `a` and `b`.
+
+```haskell
+maybeDiv 10 2 == Just 5 -- True
+maybeDiv 10 0 == Nothing -- True
+```
 
 ---
-### Curried functions
-- all functions return either the end result or function to get it:
+### Destructuring in pattern matching
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-    f :: a -> b -> c
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```haskell
+maybePlus :: Int -> Maybe Int -> Maybe Int
+maybePlus a (Just b) = Just (b + a)
+maybePlus _ Nothing = Nothing
+```
 
-- `f 3` has type `(b -> c)`, which is a function itself.
+If the second parameter is a value of `Just t` - a possible value of `Maybe Int` type, it matches
+the first case and labels the integer contained in the value as `t`. Alternatively, the second case
+matching `maybePlus _ Nothing` will capture all inputs where the second argument is `Nothing`.
+
+```haskell
+maybePlus 10 (Just 5) == Just 15 -- True
+maybePlus 10 Nothing == Nothing -- True
+```
+
+or, combined with the function defined earlier:
+
+```haskell
+maybePlus 10 (maybeDiv 10 2) == Just 15 -- True
+maybePlus 10 (maybeDiv 10 0) == Nothing -- True
+```
 
 ---
-### Modules
-- export closely related functions
-- hide private implementation
-- directory path is mapped to the module name
+## Strong typing
+- for convenience, most compilers implement type inference
+- *"If it type-checks, it's most likely good"*
+- types not only help to ensure that a program works correctly, but also provide a headline of 
+what a function is doing
 
-        Data.List
+```haskell
+maybePlus (maybeDiv 10 0) 10
+```
 
+```
+<interactive>:58:12: error:
+    • Couldn't match expected type ‘Int’ with actual type ‘Maybe Int’
+    • In the first argument of ‘maybePlus’, namely ‘(maybeDiv 10 0)’
+      In the expression: maybePlus (maybeDiv 10 0) 10
+      In an equation for ‘it’: it = maybePlus (maybeDiv 10 0) 10
+```
+
+---
+## Strong typing (2)
+
+```haskell
+map :: (a -> b) -> [a] -> [b]
+```
+
+Given the above function signature, we can already say what the function is doing:
+ - given a function `(a -> b)`
+ - and a list `[a]`
+ - it will map over the list, applying the given function and return a list of its return values
+
+Note: the example here uses variable types, and Haskell will infer the actual types based on the 
+usage of the function - as long as the types marked with the same letter (a or b) are the same, the 
+function will work correctly.
+
+---
+## Curried functions
+
+All functions in Haskell either return the end result or a function to get it:
+
+```haskell
+f :: a -> b -> c
+```
+
+`f 3` has type `(b -> c)`, which is a function itself. An example of this can be a sum:
+
+```haskell
+addNumbers x y = x + y
+addFive = addNumbers 5 
+addFive 2 -- will return 7
+```
+
+`addNumbers 5` returns a function that takes one parameter `y` and results in `5 + y`.
+
+In Haskell, all functions are curried.
+---
+
+## Lambda functions
+
+```haskell
+map (\x -> x+5) [1..]
+```
+
+It is frequently convenient to express simple functions anonymously - without assigning a specific
+label to them, but rather just "embedding" them in the function call directly - as seen in the example
+above, where 5 is being added to every element of the list.
+
+The syntax to declare a lambda function is: `\parameters -> body`.
+
+Why `\`? Because `(\` resembles a lambda symbol (if you squint hard enough).
+
+---
+## Composing two functions
+
+In haskell, it is possible to compose two functions to one using the `(.)` operator:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+foo :: Int -> String
+foo = show
+
+bar :: String -> [String]
+bar x = [x]
+
+foobar = bar . foo
+
+foobar 5  -- ["5"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+---
+
+...it is not a language construct - like many others, it is a simple function, defined in the `Prelude`:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+(.) :: (b -> c) -> (a -> b) -> a -> c
+(.) f g = \x -> f (g x)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+---
+## Higher order functions
+
+Wikipedia: *"In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
+
+- *takes one or more functions as an input*
+- *outputs a function"*
+
+For example, map and fold (reduce) are very common in functional paradigm.
+
+---
+---
 ---
 
 # Generic language constructs
 
+
 ---
-## Defining data types
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-data MyType = MyIntType Int | MyEmptyType | MyStringType String
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Defines a new type `MyType` and provides three data constructors.
-
 ---
 ## Type alias
 
@@ -195,15 +358,6 @@ newtype Deck = Deck [Card]
 
 A combination of `data` and `type` - the usage of the resulting type is
 that of a `data` type, however the runtime is of a type alias.
-
----
-## Lambda functions
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-map (\x -> x+5) [1..]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-`\params -> body` - defines a lambda function to use.
 
 ---
 ## Pattern matching
@@ -377,43 +531,6 @@ findLowerThan measure = filter (< measure)
 
 ---
 # Elements of functional programming
-
----
-## Composing two functions
-
-In haskell, it is possible to compose two functions to one using the `(.)` operator:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-foo :: Int -> String
-foo = show
-
-bar :: String -> [String]
-bar x = [x]
-
-foobar = bar . foo
-
-foobar 5  -- ["5"]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-----
-
-...it is not a language construct - like many others, it is a simple function, defined in the `Prelude`:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-(.) :: (b -> c) -> (a -> b) -> a -> c
-(.) f g = \x -> f (g x)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
----
-## Higher order functions
-
-Wikipedia: *"In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
-
-- *takes one or more functions as an input*
-- *outputs a function"*
-
-For example, map and fold (reduce) are very common in functional paradigm.
 
 ---
 ## Boxes and computation context

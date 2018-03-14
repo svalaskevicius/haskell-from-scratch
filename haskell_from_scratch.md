@@ -10,18 +10,18 @@ class: middle
 ## What to expect from this course
 
 - an overview of Functional Programming and basic concepts
-- basic Haskell syntax (yes we'll use Haskell!)
+- basic Haskell syntax (yes, we'll use Haskell!)
 - being able to build a program!
 
 ---
 
 # Functional programming
 
-It is simply programming with functions.
+Simply put, it is programming with functions.
 
 A function is:
 
-- a description of a computation (a mapping from it's input values to an output value);
+- a description of a computation (a mapping from its input values to an output value);
 - a value that can be passed over (or be returned from) to another function.
 
 ```haskell
@@ -86,7 +86,7 @@ f x y = x `div` y
 data MyType = MyIntType Int | MyEmptyType | MyStringType String
 ```
 
-Defines a new type `MyType` and provides three data constructors:
+Defines a new type `MyType` and provides three alternative data constructors:
  - `MyIntType` has one Integer parameter
  - `MyEmptyType` has no parameters
  - `MyStringType` has one String parameter
@@ -94,7 +94,7 @@ Defines a new type `MyType` and provides three data constructors:
 
 ```haskell
 > let x = MyIntType 1
-> :t x
+> :type x
 x :: MyType
 ```
 
@@ -107,10 +107,9 @@ A data structure that keeps a list of elements of the same type.
 data List a = Nil | Cons a (List a)
 ```
 
-A list can either be empty list `Nil`, or an element `a` prepended `Cons` to a list of the same type
-elements `(List a)`.
+A list can either be empty list `Nil`, or `Cons`, that prepends an element of type `a` to a list of the same type.
 
-A list of type `a` in Haskell is denoted as `[a]`: `Nil` is represented as `[]` and `Cons` - `:`.
+A list of type `a` in Haskell is denoted as `[a]`. `Nil` is represented as `[]` and `Cons` - `:`.
 
 ```haskell
 > [1, 2, 3]
@@ -160,7 +159,7 @@ When calculating, e.g. `take 10 fibs`, it will return `[1,1,2,3,5,8,13,21,34,55]
 4. and so on, until we get 55 - which is the 10th element.
 
 As we only requested 10 elements, Haskell will stop after calculating the 10th element and will
-not be stuck calculating the sequence numbers forever, even 
+not be stuck calculating the sequence numbers forever, even
 though there is no exit condition defined in the function `fibs`.
 
 
@@ -190,7 +189,7 @@ maybeDiv a b = Just (a `div` b)
 ```
 
 If the second parameter is `0`, the function will match the first case - `maybeDiv _ 0` and
-return `Nothing` as the result - parameters marked with `_` match everything and are ignored. 
+return `Nothing` as the result - parameters marked with `_` match everything and are ignored.
 For all other cases, the second line will match as the default case:
 `maybeDiv a b` and capture the argument values as `a` and `b`.
 
@@ -226,12 +225,17 @@ maybePlus 10 (maybeDiv 10 0) == Nothing -- True
 
 ---
 ## Strong typing
-- for convenience, most compilers implement type inference
+
 - *"If it type-checks, it's most likely good"*
-- types not only help to ensure that a program works correctly, but also provide a headline of 
+- types not only help to ensure that a program works correctly, but also provide a headline of
 what a function is doing
+- for convenience, most compilers implement type inference
 
 ```haskell
+maybePlus :: Int -> Maybe Int -> Maybe Int
+
+...
+
 maybePlus (maybeDiv 10 0) 10
 ```
 
@@ -255,8 +259,8 @@ Given the above function signature, we can already say what the function is doin
  - and a list `[a]`
  - it will map over the list, applying the given function and return a list of its return values
 
-Note: the example here uses variable types, and Haskell will infer the actual types based on the 
-usage of the function - as long as the types marked with the same letter (a or b) are the same, the 
+Note: the example here uses variable types, and Haskell will infer the actual types based on the
+usage of the function - as long as the types marked with the same letter (a or b) are the same, the
 function will work correctly.
 
 ---
@@ -272,7 +276,7 @@ f :: a -> b -> c
 
 ```haskell
 addNumbers x y = x + y
-addFive = addNumbers 5 
+addFive = addNumbers 5
 addFive 2 -- will return 7
 ```
 
@@ -283,24 +287,24 @@ In Haskell, all functions are curried.
 
 ## Lambda functions
 
+It is frequently convenient to express simple functions anonymously - without assigning a specific
+label to them, but rather just "embedding" them in the function call directly - as seen in the example
+below, where 5 is being added to every element of the list.
+
+The syntax to declare a lambda function is: `\parameters -> body`.
+
 ```haskell
 map (\x -> x+5) [1..]
 ```
-
-It is frequently convenient to express simple functions anonymously - without assigning a specific
-label to them, but rather just "embedding" them in the function call directly - as seen in the example
-above, where 5 is being added to every element of the list.
-
-The syntax to declare a lambda function is: `\parameters -> body`.
 
 Why `\`? Because `(\` resembles a lambda symbol (if you squint hard enough).
 
 ---
 ## Composing two functions
 
-In haskell, it is possible to compose two functions to one using the `(.)` operator:
+In haskell, it is possible to compose two functions to one using the `.` operator:
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+```haskell
 foo :: Int -> String
 foo = show
 
@@ -310,17 +314,35 @@ bar x = [x]
 foobar = bar . foo
 
 foobar 5  -- ["5"]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+```haskell
+> :info foobar
+foobar :: Int -> [String]
+```
+
+`bar` composed with `foo` will call the function `foo` first, and pass its results to the argument of `bar` returning the final results.
 
 ---
+## Composing two functions (2)
 
-...it is not a language construct - like many others, it is a simple function, defined in the `Prelude`:
+The `.` operator is not a specific language construct - like many others, it is a simple function, defined in the *Prelude*:
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-(.) :: (b -> c) -> (a -> b) -> a -> c
+```haskell
+(.) :: (b -> c) -> (a -> b) -> (a -> c)
 (.) f g = \x -> f (g x)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+It takes two functions `b -> c` (`f`) and `a -> b` (`g`), and returns a function of type `a -> c`, hiding the intermediate type `b` by passing it directly to the function `f`. As it does not capture the argument of type `a` in the argument list, this implementation uses a *lambda function* to capture it as `x`.
+
+Alternatively, this could be written as:
+
+```haskell
+(.) :: (b -> c) -> (a -> b) -> (a -> c)
+(.) f g x = f (g x)
+```
+
+Note: *Prelude* is a standard library enabled by default for all Haskell programs.
 
 ---
 ## Higher order functions
@@ -486,7 +508,7 @@ Note: indentation matters.
 
 - `a` is a variable type - we can call it with any types that satisfy the constraints (that have an
   instance of `Eq` type class defined for them).
-- `Eq` is a typeclass that we require for the type `a`. It is defined by the haskell library, and 
+- `Eq` is a typeclass that we require for the type `a`. It is defined by the haskell library, and
 specifies that the equality functions for the type `a` are defined (`==`), otherwise it will not
 compile.
 
@@ -767,4 +789,3 @@ echo = getLine >>= putStrLn
 ## Thanks
 
 Any questions?
-

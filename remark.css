@@ -123,6 +123,7 @@ code {
     padding-top: 1em;
 }
 blockquote {
-  border-left: 0.3em solid rgba(0,0,0,0.5);
-  padding: 0 15px;
+  border-left: 0.3em solid rgba(255,255,0,0.5);
+  padding: 0 5px;
+  margin: 0 1em;
 }

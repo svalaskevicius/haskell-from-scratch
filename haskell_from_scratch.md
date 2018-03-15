@@ -124,46 +124,6 @@ Some common functions:
  - `take 2 [1, 2, 3] = [1, 2]`
 
 ---
-## Lazy evaluation
-
-- most programming languages use eager evaluation
-- but some start to implement lazy *generators*
-- haskell is **lazy**: it will only compute a value when it is actually used
-- memory requirements are less explicit and more difficult to reason about
-- however, it is very convenient - allows "infinite" computation definitions (e.g. an infite list is
-  expressed as `[1..]`):
-
-```haskell
-> take 5 [1..]
-[1,2,3,4,5]
-```
-
----
-
-... or even
-
-```haskell
-fibs :: [Integer]
-fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
-```
-
-.pull-right[![Right-aligned image](assets/fibonacci.jpg)]
-
-This defines a Fibonacci sequence, as an infinite recursive function.
-
-When calculating, e.g. `take 10 fibs`, it will return `[1,1,2,3,5,8,13,21,34,55]`, where:
-
-1. it starts with `[1, 1]`
-2. 2 was generated as 1+1 (sum of first and the second values of `fibs`)
-3. once we have 2, it generates the next element - this time `1 + 2`
-4. and so on, until we get 55 - which is the 10th element.
-
-As we only requested 10 elements, Haskell will stop after calculating the 10th element and will
-not be stuck calculating the sequence numbers forever, even
-though there is no exit condition defined in the function `fibs`.
-
-
----
 
 # Going further
 
@@ -175,6 +135,7 @@ Let's look as some more advanced features provided by Haskell:
  - Lambda functions
  - Composing two functions
  - Higher order functions
+ - Lazy evaluation
 
 ---
 ## Pattern matching
@@ -197,6 +158,21 @@ For all other cases, the second line will match as the default case:
 maybeDiv 10 2 == Just 5 -- True
 maybeDiv 10 0 == Nothing -- True
 ```
+---
+### Pattern matching (2)
+
+Let's create a Fibonacci number generator!
+
+```haskell
+fib :: Integer -> Integer
+fib 0 = 1
+fib 1 = 1
+fib n = fib (n-1) + fib (n-2)
+```
+
+ - First the input argument is matched against the literal `0` - if it matches the function returns `1` (`fib 0 = 1`).
+ - Otherwise, it is matched against the literal number `1` - if it matches the function returns `1` (`fib 1 = 1`).
+ - If the above checks don't match, the input argument is matched against a variable `n`, which will match *any value* that was passed to the function, and place it in the variable `n`. At this point, the variable `n` can be used in the expression on the right side to make recursive calls to `fib` (`fib n = fib (n-1) + fib (n-2)`).
 
 ---
 ### Destructuring in pattern matching
@@ -347,14 +323,64 @@ Note: *Prelude* is a standard library enabled by default for all Haskell program
 ---
 ## Higher order functions
 
-Wikipedia: *"In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
+Wikipedia:
+> *In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
+>
+> - *takes one or more functions as an input*
+> - *outputs a function*
 
-- *takes one or more functions as an input*
-- *outputs a function"*
+For example, *map* and *fold* (reduce) are very common higher order functions in functional paradigm.
 
-For example, map and fold (reduce) are very common in functional paradigm.
+```haskell
+> :type map
+map :: (a -> b) -> [a] -> [b]
+
+> :type foldl
+foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
+```
+---
+## Lazy evaluation
+
+- most programming languages use eager evaluation
+- but some start to implement lazy *generators*
+- haskell is **lazy**: it will only compute a value when it is actually used
+- memory requirements are less explicit and more difficult to reason about
+- however, it is very convenient - allows "infinite" computation definitions (e.g. an infite list is
+  expressed as `[1..]`):
+
+```haskell
+> take 5 [1..]
+[1,2,3,4,5]
+```
 
 ---
+
+... or even
+
+```haskell
+fibs :: [Integer]
+fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
+```
+
+.pull-right[![Right-aligned image](assets/fibonacci.jpg)]
+
+This defines a Fibonacci sequence, as an infinite recursive function.
+
+When calculating, e.g. `take 10 fibs`, it will return `[1,1,2,3,5,8,13,21,34,55]`, where:
+
+1. it starts with `[1, 1]`
+2. 2 was generated as 1+1 (sum of first and the second values of `fibs`)
+3. once we have 2, it generates the next element - this time `1 + 2`
+4. and so on, until we get 55 - which is the 10th element.
+
+As we only requested 10 elements, Haskell will stop after calculating the 10th element and will
+not be stuck calculating the sequence numbers forever, even
+though there is no exit condition defined in the function `fibs`.
+
+---
+# Thanks!
+
+Thanks for reading and now go do haskell!
 ---
 ---
 
@@ -381,15 +407,7 @@ newtype Deck = Deck [Card]
 A combination of `data` and `type` - the usage of the resulting type is
 that of a `data` type, however the runtime is of a type alias.
 
----
-## Pattern matching
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
-fib :: Integer -> Integer
-fib 0 = 1
-fib 1 = 1
-fib n = fib (n-1) + fib (n-2)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ---
 ## Guards!

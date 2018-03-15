@@ -13,6 +13,15 @@ class: middle
 - basic Haskell syntax (yes, we'll use Haskell!)
 - being able to build a program!
 
+### Why Haskell?
+
+- It's purely functional, so it's easier to identify the concepts being explained.
+- Paradigm concepts are easily translated to other languages, such as Scala
+- Because it's awesome
+- It does not allow you to shoot yourself in the foot
+- Because it's elegant and clean, it becomes easy to read once you know the
+  minimal syntax
+
 ---
 
 # Functional programming
@@ -122,6 +131,37 @@ Some common functions:
  - `head [1, 2, 3] = 1`
  - `tail [1, 2, 3] = [2, 3]`
  - `take 2 [1, 2, 3] = [1, 2]`
+
+---
+
+## Ranges
+
+A simple way to create lists of number ranges, is to use the `..` operator.
+For example:
+
+```haskell
+> [1..5]
+[1,2,3,4,5]
+```
+
+
+We can specify the increment amount for a range by telling the compiler what
+the second elment of the sequence will be:
+
+```haskell
+> [1,3..11]
+[1,3,5,7,9,11]
+```
+
+We can also create infinite lists of numbers by not specifying the end limit
+value for the range, as so:
+
+```haskell
+[1..]
+```
+Because Haskell is lazy, you can create such lists and the compiler will be
+able to handle them.
+
 
 ---
 

@@ -502,6 +502,12 @@ main = do
     putStrLn fullText
 ```
 
+Do notation allows you to extract a value which is inside of a context (the
+right side of the `<-` expression), out of that context. This allows you to
+use it in a chain of such expressions. The last expression in the do notation,
+will be returned as the result, and it needs to be in the same context (in the
+above example IO).
+
 ---
 ## Accessing application's arguments
 

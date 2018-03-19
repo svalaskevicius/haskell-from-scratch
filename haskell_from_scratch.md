@@ -153,15 +153,6 @@ the second elment of the sequence will be:
 [1,3,5,7,9,11]
 ```
 
-We can also create infinite lists of numbers by not specifying the end limit
-value for the range, as so:
-
-```haskell
-[1..]
-```
-Because Haskell is lazy, you can create such lists and the compiler will be
-able to handle them.
-
 Ranges can be used to create lists of characters:
 
 ```haskell
@@ -170,6 +161,20 @@ Ranges can be used to create lists of characters:
 > ['a','c'..'z']
 "acegikmoqsuwy"
 ```
+
+---
+## Ranges (2)
+
+We can also create infinite lists of numbers by not specifying the end limit
+value for the range, as so:
+
+```haskell
+[1..]
+```
+
+Because Haskell is lazy, you can create such lists and the compiler will be
+able to handle them.
+
 
 ---
 
@@ -207,7 +212,7 @@ maybeDiv 10 2 == Just 5 -- True
 maybeDiv 10 0 == Nothing -- True
 ```
 ---
-### Pattern matching (2)
+## Pattern matching (2)
 
 Let's create a Fibonacci number generator!
 
@@ -223,6 +228,7 @@ fib n = fib (n-1) + fib (n-2)
  - If the above checks don't match, the input argument is matched against a variable `n`, which will match *any value* that was passed to the function, and place it in the variable `n`. At this point, the variable `n` can be used in the expression on the right side to make recursive calls to `fib` (`fib n = fib (n-1) + fib (n-2)`).
 
 ---
+## Pattern matching (3)
 ### Destructuring in pattern matching
 
 ```haskell
@@ -426,9 +432,154 @@ not be stuck calculating the sequence numbers forever, even
 though there is no exit condition defined in the function `fibs`.
 
 ---
+# A practical example
+
+Let's build a full application! We'll start with a simple one - an application
+that prints sorted numerical arguments.
+
+---
+## Defining main
+
+```haskell
+main :: IO()
+main = return ()
+```
+
+A minimal program that does nothing at all.  It defines an empty `main` function that Haskell uses as the entry point.
+
+You'll notice that it is of an `IO a` type - a context that is allowed to execute I/O functons.
+
+---
+### IO type
+
+Because Haskell is a pure functional programming language, it does not allow printing, or doing any other side-effects in pure logic functions.
+
+*But how do we implement a useful program then?!*
+
+The answer is - `IO` monad.
+
+### Monad?
+
+A simple description is - it allows to define chained actions in a specific context. A convenient way to express such chained actions is using a *do notation*:
+
+```haskell
+worldType :: IO String
+worldType = return "haskell"
+
+main :: IO()
+main = do
+    whatWorld <- worldType
+    let fullText = "hello " ++ whatWorld ++ " world"
+    putStrLn fullText
+```
+
+---
+## Accessing application's arguments
+
+```haskell
+import System.Environment (getArgs)
+
+main :: IO()
+main = do
+    args <- getArgs
+    return ()
+```
+
+---
+## Sort!
+
+Let's implement our sorting algorithm:
+
+```haskell
+quicksort [] = []
+quicksort (p:xs) = (quicksort lesser) ++ [p] ++ (quicksort greater)
+    where
+        lesser = filter (< p) xs
+        greater = filter (>= p) xs
+```
+
+---
+## Sort! (2)
+
+But how can we use it?
+
+```haskell
+main :: IO()
+main = do
+    args <- getArgs
+    putStrLn (quicksort args)
+```
+
+```
+test.hs:12:15: error:
+    • Couldn't match type ‘[Char]’ with ‘Char’
+      Expected type: String
+        Actual type: [String]
+    • In the first argument of ‘putStrLn’, namely ‘(quicksort args)’
+      In a stmt of a 'do' block: putStrLn (quicksort args)
+      In the expression:
+        do { args <- getArgs;
+             putStrLn (quicksort args) }
+```
+
+---
+## Print result
+
+```haskell
+import Data.List (intercalate)
+
+main :: IO()
+main = do
+    args <- getArgs
+    putStrLn (intercalate " " (quicksort args))
+```
+
+But what's this?
+
+```
+# runghc test.hs 10 100 20
+10 100 20
+```
+
+---
+## Sorting as integers
+
+```haskell
+import Data.Maybe (catMaybes)
+
+main :: IO()
+main = do
+    args <- getArgs
+    let integerArgs = (catMaybes $ map readMaybe args)::[Int]
+    putStrLn (intercalate " " (map show (quicksort integerArgs)))
+```
+
+```
+runghc test.hs 10 100 20 asd
+10 20 100
+```
+
+---
+## Combine functions
+
+```haskell
+extractIntegers :: [String] -> [Int]
+extractIntegers = catMaybes . map readMaybe
+
+formatString = intercalate " " . map show
+
+sortStringsAsIntegers = formatString . quicksort . extractIntegers
+
+main :: IO()
+main = do
+    args <- getArgs
+    putStrLn (sortStringsAsIntegers args)
+```
+
+---
+---
 # Thanks!
 
-Thanks for reading and now go do haskell!
 ---
 ---
 

@@ -1,6 +1,7 @@
 #!/bin/sh
 
-pandoc --slide-level=2 --highlight-style zenburn -f markdown -t revealjs -o .contents.html haskell_from_scratch.md
+remarker -s haskell_from_scratch.md build
 
-php haskell_from_scratch.php > index.html
+odpdown  --break-master Impress --content-master Impress1 -n haskell_from_scratch.md template.odp  haskell_from_scratch.odp
+
 

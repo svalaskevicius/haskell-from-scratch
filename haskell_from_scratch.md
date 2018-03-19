@@ -447,7 +447,22 @@ main = return ()
 
 A minimal program that does nothing at all.  It defines an empty `main` function that Haskell uses as the entry point.
 
-You'll notice that it is of an `IO a` type - a context that is allowed to execute I/O functons.
+You'll notice that it hast type of `IO a` - a context that is allowed to execute I/O functons.
+
+
+---
+### The `return` function
+
+In haskell, the return value of a function is the result of evaluation the
+expression inside of that function. As so, there's is no motive to have a
+`return` keyword as you find in other languages.
+There is though, a `return` function in haskell, but it does something
+completely different from what you may be used to.
+
+In haskell, `return` is a function that will give you back a value wrapped inside the
+context of the expression it is at. It sounds more complicated that what it
+really is. In the example about, it returns `()` in the context of `IO`, so
+`IO()`
 
 ---
 ### IO type
@@ -460,7 +475,7 @@ The answer is - `IO` monad.
 
 ### Monad?
 
-A simple description is - it allows to define chained actions in a specific context. A convenient way to express such chained actions is using a *do notation*:
+A simple description is - it allows to define chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
 
 ```haskell
 worldType :: IO String

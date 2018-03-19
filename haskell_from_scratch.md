@@ -162,6 +162,14 @@ value for the range, as so:
 Because Haskell is lazy, you can create such lists and the compiler will be
 able to handle them.
 
+Ranges can be used to create lists of characters:
+
+```haskell
+> ['a'..'f']
+"abcdef"
+> ['a','c'..'z']
+"acegikmoqsuwy"
+```
 
 ---
 

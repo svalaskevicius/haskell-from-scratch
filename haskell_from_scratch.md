@@ -449,6 +449,20 @@ A minimal program that does nothing at all.  It defines an empty `main` function
 
 You'll notice that it hast type of `IO a` - a context that is allowed to execute I/O functons.
 
+---
+### Unit ()
+
+In haskell `()` is called Unit. Unit is used to denote a type that carries no
+information. It is often used when causing side-effects which will have no
+useful information to give back. For example:
+
+```haskell
+hello :: IO()
+hello = putStrLn "Hello World"
+```
+In this case printing a string has no relevant value to return, so it returns
+`()`. In this example, `()` is wrapped in the context of `IO` because that's the only context
+where side-effects are allowed in haskell.
 
 ---
 ### The `return` function

@@ -1,0 +1,12 @@
+port: 6275
+dest: build
+source: slides.md
+title: ''
+assets: ['assets']
+css: ''
+cssFiles: ['remark.css']
+script: ''
+scriptFiles: []
+remarkConfig: {}
+# remarkPath: moduleDir + '/vendor/remark.js'
+

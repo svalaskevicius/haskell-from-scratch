@@ -496,7 +496,7 @@ The answer is - `IO` monad.
 
 ## Monad?
 
-A simple description is - it allows to define chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
+A simple description is -  it allows defining chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
 
 ```Haskell
 worldType :: IO String
@@ -593,12 +593,12 @@ test.hs:12:15: error:
              putStrLn (quicksort args) }
 ```
 
-`putStrLn` expects a singe string, instead of a list of strings!
+`putStrLn` expects a single string, instead of a list of strings!
 
 ---
 ## Print result
 
-`putStrLn` expects a singe string, instead of a list of strings! To fix this, we'll use `intercalate` function imported from the `Data.List` module.
+`putStrLn` expects a single string, instead of a list of strings! To fix this, we'll use `intercalate` function imported from the `Data.List` module.
 
 ```Haskell
 import Data.List (intercalate)
@@ -621,7 +621,7 @@ But what's this? `20` should be before `100`!
 ---
 ## Sorting as integers
 
-`20` should be before `100`! The reason, as you might have guessed, is that Haskell sorted the arguments as strings. Let's convert the arguemnts to integers:
+`20` should be before `100`! The reason, as you might have guessed, is that Haskell sorted the arguments as strings. Let's convert the arguments to integers:
 
 ```Haskell
 import Data.Maybe (catMaybes)

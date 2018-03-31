@@ -496,7 +496,7 @@ The answer is - `IO` monad.
 
 ## Monad?
 
-A simple description is -  it allows defining chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
+A simple description is - it allows defining chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
 
 ```Haskell
 worldType :: IO String
@@ -687,6 +687,69 @@ main = do
     args <- getArgs
     putStrLn (sortStringsAsIntegers args)
 ```
+---
+# N-Grams example
+
+---
+## What is an n-gram?
+
+An n-gram is a continuous sequence of *n* items from a given sample of text.
+
+For example, a list of tri-grams:
+
+```
+An n-gram is
+n-gram is a
+is a continuous
+...
+```
+
+We can represent it as trees with probabilities of word occurrence:
+
+```
+I ------> am -----> going  (100%)
+
+am -----> going --> to     (50%)
+                `-> home   (50%)
+
+going --> to -----> work   (50%)
+      |      `----> school (50%)
+      |
+      `-> home ---> [END]  (100%)
+```
+
+---
+## How can we use it?
+
+```
+I ------> am -----> going  (100%)
+
+am -----> going --> to     (50%)
+                `-> home   (50%)
+
+going --> to -----> work   (50%)
+      |      `----> school (50%)
+      |
+      `-> home ---> [END]  (100%)
+```
+
+We can use this model as a *Markov chain* (from Oxford dictionaries):
+
+> A stochastic model describing a sequence of possible events in which the probability of each event depends only on the state attained in the previous event.
+
+This allows us to generate sentences, resembling the text used to generate tri-grams, although the semantics of the result will be lost.
+
+---
+## Let's define our type
+
+## Adding text
+
+## Generating new sentences
+
+## Quiz
+
+##
+
 
 ---
 # Thanks!

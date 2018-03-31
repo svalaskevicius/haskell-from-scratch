@@ -1,12 +1,16 @@
+/*
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
 @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+*/
+
+@import url(assets/fonts.css);
 
 body {
-    font-family: 'Open Sans';
+    font-family: 'Open Sans', Helvetica, Verdana, sans-serif;
 }
 h1, h2, h3 {
-    font-family: 'Yanone Kaffeesatz';
+    font-family: 'Yanone Kaffeesatz', sans-serif;
     font-weight: 500;
     margin-bottom: 0;
     color: #309020;
@@ -26,7 +30,7 @@ h1:before {
   font-size: 1.1em;
   padding-right: 30px;
   padding-left: 30px;
-  color: #e04030;
+  color: #e54535;
   text-shadow: 1px 1px #103000;
   background-color: #e04030;
   border-radius: 3px;
@@ -41,7 +45,7 @@ h2:before {
   font-size: 1.1em;
   padding-right: 30px;
   padding-left: 30px;
-  color: #7040e0;
+  color: #7545e5;
   text-shadow: 1px 1px #103000;
   background-color: #7040e0;
   border-radius: 3px;
@@ -50,6 +54,18 @@ h2:before {
   position: relative;
   display: inline-block;
   margin-right: -50px;
+}
+.subheader {
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  color: #999;
+  text-shadow: 1px 1px #777;
+  display: inline-block;
+  position: absolute;
+  font-size: 2.4em;
+  right: 1.5em;
+  margin-top: -1ex;
+  font-style: oblique;
+  font-weight: 200;
 }
 .remark-slide-content { font-size: 16.8px; }
 .remark-slide-content h1 { font-size: 3.5em; }
@@ -69,7 +85,8 @@ a, a > code {
 code {
     background-color:  rgb(248, 248, 255);
     border-radius: 2px;
-    font-family: 'Ubuntu Mono'; white-space: pre;
+    font-family: 'Ubuntu Mono', monospace;
+    white-space: pre;
 }
 .remark-inline-code { 
     color: rgb(25, 70, 157); /* #307010; */
@@ -77,15 +94,18 @@ code {
 }
 .remark-code-line-highlighted     { background-color: #373832; }
 .remark-code-line { background-color: inherit; }
+p + ul {margin-top: -1.2ex;}
+p + ol {margin-top: -1.2ex;}
 ul {list-style: none;padding: 0;margin: 0;}
 ul li {
   padding-left: 2em;
-  text-indent: -1em;
+  text-indent: -1.5em;
   line-height: 2em;
 }
 ul li::before {
   content: "•";
   font-size: 1.1em;
+  width: 1em;
   padding-right: 1em;
   color: #ff5555;
 }

@@ -5,7 +5,7 @@ class:
 ---
 # Introduction to Functional Programming
 
-.large[.right[***Šarūnas Valaškevičius, 2018***]]
+.subheader[Šarūnas Valaškevičius, 2018]
 ---
 ## What to expect
 
@@ -147,7 +147,7 @@ For example:
 
 
 We can specify the increment amount for a range by telling the compiler what
-the second elment of the sequence will be:
+the second element of the sequence will be:
 
 ```Haskell
 > [1,3..11]
@@ -416,7 +416,7 @@ fibs :: [Integer]
 fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 ```
 
-.pull-right[![Right-aligned image](assets/fibonacci.jpg)]
+.pull-right[![Fibonacci algorithm](assets/fibonacci.jpg)]
 
 This defines a Fibonacci sequence, as an infinite recursive function.
 
@@ -754,19 +754,78 @@ type NGrams = Tree String Integer
 
 First, we define a generic `Tree` type, that contains a value of type `b` and a map, where keys are of a given type `a`, and values - a recursive definition of the same type `Tree a b`.
 
-But hey! What's that `!`? Haskell, being a lazy language, does not alway calculate the results and put in variables. Instead, the default behaviour is for variables to hold information how to calculate the value, and only calculate it when it is needed for the first time (*Lazyness*). `!` makes this type to calculate the values immediatelly, instead of deferring it. It is called the *Strictness operator*.
+But hey! What's that `!`? Haskell, being a lazy language, does not alway calculate the results and put in variables. Instead, the default behaviour is for variables to hold information how to calculate the value, and only calculate it when it is needed for the first time (*Laziness*). `!` makes this type to calculate the values immediately, instead of deferring it. It is called the *Strictness operator*.
 
-Our `NGrams` type is simply a type alias to a `Tree` type, where the key is going to be a `String` and the value for each node - an `Integer`. We'll use it as a counter to tell how many times has this n-gram occured in our text.
+Our `NGrams` type is simply a type alias to a `Tree` type, where the key is going to be a `String` and the value for each node - an `Integer`. We'll use it as a counter to tell how many times has this n-gram occurred in our text.
 
 ---
-## Adding text
+## Adding text (single n-gram)
 
+We'll start from an empty `NGrams` instance:
+```haskell
+emptyNGrams = Tree M.empty 0
+```
+
+It is simply an empty tree, with `0` as the occurrence counter. Let's now define a function that can add an NGram (list of words) to the data structure.
+
+```haskell
+addNGram :: NGrams -> [String] -> NGrams
+addNGram (Tree ngramsMap amount) (word:ws) =
+    Tree (M.alter addToNGramsMap word ngramsMap) (amount + 1)
+    where addToNGramsMap Nothing  = Just $ addNGram emptyNGrams ws
+          addToNGramsMap (Just m) = Just $ addNGram m ws
+addNGram (Tree ngramsMap amount) [] = Tree ngramsMap (amount + 1)
+```
+
+We use pattern matching, also destructure the ngram argument to the first `word` and the rest (`ws`).
+
+---
+## Adding text (single n-gram)
+
+Let's check both cases separately:
+
+```haskell
+addNGram (Tree ngramsMap amount) (word:ws) =
+    Tree (M.alter addToNGramsMap word ngramsMap) (amount + 1)
+    where addToNGramsMap Nothing  = Just $ addNGram emptyNGrams ws
+          addToNGramsMap (Just m) = Just $ addNGram m ws
+```
+
+- If there was no element with the given word already, then we'll recursively add `ws` to an empty `NGrams` and update the `Tree` for the given word with the result.
+- If there was an existing `Tree` for the given word we'll add the rest of the words (`ws`) to it.
+
+Importantly, both cases also increment the counter - `amount + 1`.
+
+```haskell
+addNGram (Tree ngramsMap amount) [] = Tree ngramsMap (amount + 1)
+```
+
+Once the recursion comes to the state where the list of words is empty, we'll simply increment the amount (to denote that the state was visited during word addition), and leave the map as it was.
+
+---
+## Adding text (single n-gram)
+
+Once we have added a few n-grams, our `NGrams` structure looks like this:
+
+.large[IMAGE MISSING]
+
+---
+## Loading text content
+
+---
 ## Generating new sentences
 
+---
+## Generate next word
+
+---
+## Joining it all together
+
+---
+## Example output
+
+---
 ## Quiz
-
-##
-
 
 ---
 # Thanks!

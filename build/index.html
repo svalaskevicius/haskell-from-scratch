@@ -419,6 +419,12 @@ foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
 ```
 
 ---
+## a
+
+.pull-right{![Right-aligned image](assets/fibonacci.jpg)}
+
+a
+
 ## ... or even
 
 ```Haskell
@@ -426,7 +432,8 @@ fibs :: [Integer]
 fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 ```
 
-.pull-right[![Right-aligned image](assets/fibonacci.jpg)]
+.pull-right{![Right-aligned image](assets/fibonacci.jpg)}
+![Right-aligned image](assets/fibonacci.jpg)
 
 This defines a Fibonacci sequence, as an infinite recursive function.
 
@@ -507,7 +514,7 @@ The answer is - `IO` monad.
 
 ## Monad?
 
-A simple description is - it allows to define chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
+A simple description is - it allows defining chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
 
 ```Haskell
 worldType :: IO String
@@ -753,6 +760,15 @@ This allows us to generate sentences, resembling the text used to generate tri-g
 ---
 ## Let's define our type
 
+```haskell
+data Tree a b = Tree !(Map a (Tree a b)) !b deriving (Show)
+
+type NGrams = Tree String Integer
+```
+
+We'll use a multi-branched tree structure,
+
+---
 ## Adding text
 
 ## Generating new sentences

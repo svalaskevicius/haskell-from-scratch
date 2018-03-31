@@ -1,9 +1,8 @@
-name: inverse
+name: FP
 layout: true
-class: inverse
+class:
 
 ---
-class: middle
 # Introduction to Functional Programming
 
 ---
@@ -13,6 +12,7 @@ class: middle
 - basic Haskell syntax (yes, we'll use Haskell!)
 - being able to build a program!
 
+---
 ## Why Haskell?
 
 - It's purely functional, so it's easier to identify the concepts being explained.
@@ -46,7 +46,7 @@ myFunction arg1 arg2
 Functions can also be *pure* and *total*.
 
 ---
-## Pure functions
+## Pure functions
 A function where the return value can only be affected by its input parameters, and it does not
 produce any observable side-effect is called a *pure* function - the only effect of the function is
 the produced return value.
@@ -109,7 +109,7 @@ x :: MyType
 ```
 
 ---
-## List
+## List
 
 A data structure that keeps a list of elements of the same type.
 
@@ -176,7 +176,7 @@ Because Haskell is lazy, you can create such lists and the compiler will be
 able to handle them.
 
 ---
-## Going further
+## Going further
 
 
 Let's look as some more advanced features provided by Haskell:
@@ -212,7 +212,7 @@ maybeDiv 10 0 == Nothing -- True
 ```
 
 ---
-## Pattern matching
+## Pattern matching
 
 Let's create a Fibonacci number generator!
 
@@ -228,7 +228,7 @@ fib n = fib (n-1) + fib (n-2)
  - If the above checks don't match, the input argument is matched against a variable `n`, which will match *any value* that was passed to the function, and place it in the variable `n`. At this point, the variable `n` can be used in the expression on the right side to make recursive calls to `fib` (`fib n = fib (n-1) + fib (n-2)`).
 
 ---
-## Destructuring matching
+## Destructuring matching
 
 ```Haskell
 maybePlus :: Int -> Maybe Int -> Maybe Int
@@ -277,7 +277,7 @@ maybePlus (maybeDiv 10 0) 10
 ```
 
 ---
-## Strong typing
+## Strong typing
 
 ```Haskell
 map :: (a -> b) -> [a] -> [b]
@@ -408,7 +408,7 @@ foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
 ```
 
 ---
-## ... or even
+## ... or even
 
 ```Haskell
 fibs :: [Integer]
@@ -431,7 +431,7 @@ not be stuck calculating the sequence numbers forever, even
 though there is no exit condition defined in the function `fibs`.
 
 ---
-# A practical example
+# A practical example
 
 ---
 ## Let's build an application!
@@ -440,7 +440,7 @@ We'll start with a simple one - an application
 that prints sorted numerical arguments.
 
 ---
-## Defining main
+## Defining main
 
 ```Haskell
 main :: IO ()
@@ -494,7 +494,8 @@ Because Haskell is a pure functional programming language, it does not allow pri
 
 The answer is - `IO` monad.
 
-## Monad?
+---
+## Monad?
 
 A simple description is - it allows defining chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
 
@@ -510,7 +511,7 @@ main = do
 ```
 
 ---
-## Monad
+## Monad
 
 ```Haskell
 worldType :: IO String
@@ -568,7 +569,7 @@ Notice, that it does not need to interact with I/O and is considered a *pure* fu
 Also, it does not have a function signature! This lets the Haskell compiler to infer the actual types based on both the usage and implementation of the function as we'll see in the further examples.
 
 ---
-## ...sort
+## ...sort
 
 But how can we use it?
 
@@ -643,7 +644,7 @@ runghc test.hs 10 100 20 asd
 Note: to convert the integers back to strings, we have used the `show` function.
 
 ---
-## Combine functions
+## Combine functions
 
 As we have a working application, let's make it a bit nicer. We'll create small, descriptive functions to be able to *read* the program easily:
 
@@ -691,7 +692,7 @@ main = do
 # N-Grams example
 
 ---
-## What is an n-gram?
+## What is an n-gram?
 
 An n-gram is a continuous sequence of *n* items from a given sample of text.
 
@@ -740,18 +741,27 @@ We can use this model as a *Markov chain* (from Oxford dictionaries):
 This allows us to generate sentences, resembling the text used to generate tri-grams, although the semantics of the result will be lost.
 
 ---
-## Let's define our type
+## Let's define our type
 
-## Adding text
+```haskell
+data Tree a b = Tree !(Map a (Tree a b)) !b deriving (Show)
 
-## Generating new sentences
+type NGrams = Tree String Integer
+```
 
-## Quiz
+We'll use a multi-branched tree structure,
+
+---
+## Adding text
+
+## Generating new sentences
+
+## Quiz
 
 ##
 
 
 ---
-# Thanks!
+# Thanks!
 
-.center[![Haskell logo](assets/haskell_logo.png)]
+.top-right[![Haskell logo](assets/haskell_logo.png)]

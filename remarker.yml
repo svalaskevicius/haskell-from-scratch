@@ -7,6 +7,11 @@ css: ''
 cssFiles: ['remark.css']
 script: ''
 scriptFiles: []
-remarkConfig: {}
+remarkConfig:
+    highlightStyle: 'docco'
+    navigation:
+        scroll: false
+# ascetic, googlecode, rainbow, tomorrow, zenburn
+# arta, ascetic, dark, default, far, github, googlecode, idea, ir-black, magula, monokai, rainbow, solarized-dark, solarized-light, sunburst, tomorrow, tomorrow-night-blue, tomorrow-night-bright, tomorrow-night, tomorrow-night-eighties, vs, zenburn
 # remarkPath: moduleDir + '/vendor/remark.js'
 

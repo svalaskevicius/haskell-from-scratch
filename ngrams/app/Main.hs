@@ -7,9 +7,9 @@ import           System.Environment (getArgs)
 import           System.Random      (newStdGen, randoms)
 import           Text.Read          (readMaybe)
 
-import System.IO
+import           System.IO
 
-import Debug.Trace (trace)
+import           Debug.Trace        (trace)
 
 data Tree a b = Tree !(Map a (Tree a b)) !b deriving (Show)
 
@@ -43,10 +43,10 @@ loadText :: Int -> String -> NGrams
 loadText n = foldl addNGram emptyNGrams . fmap (take n) . tails . words . filtered
     where
         filtered =  nlToSpace . filter (/= '\r')
-        nlToSpace [] = []
+        nlToSpace []           = []
         nlToSpace ('-':'\n':s) = nlToSpace s
-        nlToSpace ('\n':s) = ' ':nlToSpace s
-        nlToSpace (x:xs) = x:nlToSpace xs
+        nlToSpace ('\n':s)     = ' ':nlToSpace s
+        nlToSpace (x:xs)       = x:nlToSpace xs
 
 generateSample :: Int -> NGrams -> Int -> [Double] -> String
 generateSample n ngrams wordLimit rands = unwords $ go wordLimit [] rands

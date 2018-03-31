@@ -40,9 +40,10 @@ generateNextWord (Tree ngramsMap amount) [] r = chooseWord (floor (r* fromIntegr
         wordsWithAmounts = map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
 
 loadText :: Int -> String -> NGrams
-loadText n = foldl addNGram emptyNGrams . fmap (take n) . tails . words . filtered
+loadText n = foldl addNGram emptyNGrams . ngrams . words . filtered
     where
         filtered =  nlToSpace . filter (/= '\r')
+        ngrams = fmap (take n) . tails
         nlToSpace []           = []
         nlToSpace ('-':'\n':s) = nlToSpace s
         nlToSpace ('\n':s)     = ' ':nlToSpace s

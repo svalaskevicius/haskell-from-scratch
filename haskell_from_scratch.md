@@ -378,10 +378,10 @@ Note: *Prelude* is a standard library enabled by default for all Haskell program
 ## Higher order functions
 
 Wikipedia:
-> *In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
+> In mathematics and computer science, a higher-order function is a function that does at least one of the following:
 >
-> - *takes one or more functions as an input*
-> - *outputs a function*
+> - takes one or more functions as an input
+> - outputs a function
 
 For example, *map* and *fold* (reduce) are very common higher order functions in functional paradigm.
 
@@ -807,22 +807,270 @@ Once the recursion comes to the state where the list of words is empty, we'll si
 
 Once we have added a few n-grams, our `NGrams` structure looks like this:
 
-.large[IMAGE MISSING]
+![NGrams structure](assets/ngrams_structure.jpg)
 
 ---
 ## Loading text content
 
+We'll define a function, that takes an integer `n` - to generate n-grams, input text as a `String`, and will return the generated `NGrams` structure.
+
+```haskell
+loadText :: Int -> String -> NGrams
+```
+
+To implement it, we'll need to clean up the input text, generate ngrams, and add them all to an empty `NGrams` structure. All this is done by the line here:
+
+```haskell
+loadText n = foldl addNGram emptyNGrams . ngrams . filtered
+```
+
+Of course, we'll need to define the actual functions:
+
+```haskell
+    where
+        filtered =  nlToSpace . filter (/= '\r')
+
+        ngrams = fmap (take n) . tails . words
+
+        nlToSpace []           = []
+        nlToSpace ('-':'\n':s) = nlToSpace s
+        nlToSpace ('\n':s)     = ' ':nlToSpace s
+        nlToSpace (x:xs)       = x:nlToSpace xs
+```
+
+---
+## Loading text content
+
+Let's look at them one by one:
+
+```haskell
+filtered = nlToSpace . filter (/= '\r')
+```
+
+We'll remove all carriage return characters (`\r`), and join new lines with spaces:
+
+```haskell
+nlToSpace []           = []
+nlToSpace ('-':'\n':s) = nlToSpace s
+nlToSpace ('\n':s)     = ' ':nlToSpace s
+nlToSpace (x:xs)       = x:nlToSpace xs
+```
+
+`nlToSpace` is a recursive function, as it needs some more context for pattern matching - e.g. if a line ends with a `-` the function will not add a space, but will just remove both the dash `-` and the following new line character `\n`.
+
+---
+## Loading text content
+
+To generage n-grams, we split the input string to words, and return all possible tails of a given list, later reducing each tail to the size of the requested `n`.
+
+```haskell
+ngrams = fmap (take n) . tails . words
+```
+
+![NGrams generation](assets/ngrams.jpg)
+
+---
+## Loading text content
+
+The last step is to add all generated ngrams to an empty `NGrams` data structure:
+
+```haskell
+foldl addNGram emptyNGrams ngrams
+```
+
+We have already defined the `addNGram` before, so now we just need to *fold* that function for all generated ngrams.
+
+```haskell
+class Foldable (t :: * -> *) where
+    foldl :: (b -> a -> b) -> b -> t a -> b
+```
+
+A `class`? Yes, it's a typeclass.
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+From "Learn You a Haskell for Great Good!":
+
+> A typeclass is a sort of interface that defines some behavior. If a type is a part of a typeclass, that means that it supports and implements the behavior the typeclass describes. A lot of people coming from OOP get confused by typeclasses because they think they are like classes in object oriented languages.
+
+Typeclasses are:
+- similar to interfaces/abstract classes in OO
+- can have default implementation
+
+```haskell
+countSame :: Eq a => a -> [a] -> Int
+```
+
+- `a` is a variable type - we can call it with any types that satisfy the constraints (that have an
+  instance of `Eq` type class defined for them).
+- `Eq` is a typeclass that we require for the type `a`. It is defined by the Haskell library, and
+specifies that the equality functions for the type `a` are defined (`==`), otherwise it will not
+compile.
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+```haskell
+countSame :: Eq a => a -> [a] -> Int
+```
+
+Given the above function signature, we can say that:
+
+- we only require **to be able** to compare variables of type `a`
+- we only **can** compare the variables of type `a`
+- **the same type** `a` has to be passed to the 1st and 2nd params
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+Typeclasses are defined like this:
+
+```haskell
+class  Eq a  where
+    (==), (/=)           :: a -> a -> Bool
+
+    x /= y               = not (x == y)
+    x == y               = not (x /= y)
+```
+
+The users of a library can choose which function to implement - `==` or `/=`, because the other one will then be able to use the default behaviour of negating the implemented one.
+
+Creating new instances:
+
+```haskell
+data MyType = MyType Int
+
+instance Eq MyType where
+    (MyType a) == (MyType b) = a == b
+```
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+Usage in functions:
+
+```haskell
+countSame :: Eq a => a -> [a] -> Int
+countSame x = foldl (\s el -> if el == x then s + 1 else s) 0
+```
+
+Back to *fold*!
+
+```haskell
+class Foldable (t :: * -> *) where
+    foldl :: (b -> a -> b) -> b -> t a -> b
+```
+
+It takes a function that takes a `b` and an `a` and returns a `b` - after applying the `a` to the original `b`, `foldl` then takes an initial `b` value, and a `t a`, where `t` is `Foldable` (in our example it is a list) and contains values of `a`. The fold function then goes through all of the values `a` in our list, and applies to the `b` value, always accumulating the result.
+
+Let's try with `countSame` - `foldl` takes a function `(\s el -> if el == x then s + 1 else s)` - which takes `s` and `el` - and if `el` is equal to the parameter given earlier, it increments `s` by returning `s + 1` or leaves it the same as before. `foldl` will start with the initial value of `0`, and the last parameter - the `[a]` is going to be passed when invoking `countSame` (remember currying?).
+
+---
+## Loading text content
+
+Let's check our `loadText` again:
+
+```haskell
+loadText :: Int -> String -> NGrams
+loadText n = foldl addNGram emptyNGrams . ngrams . filtered
+    where
+        filtered =  nlToSpace . filter (/= '\r')
+
+        nlToSpace []           = []
+        nlToSpace ('-':'\n':s) = nlToSpace s
+        nlToSpace ('\n':s)     = ' ':nlToSpace s
+        nlToSpace (x:xs)       = x:nlToSpace xs
+
+        ngrams = fmap (take n) . tails . words
+```
+
+We can read it now as:
+
+- We'll fold over the ngrams from the filtered input string with addNGram, starting with emptyNGrams;
+- *where* by filtering we mean to just remove the carriage returns and convert new lines to spaces;
+- ngrams are simply tails of words from the given string, all limited to the requested length.
 ---
 ## Generating new sentences
 
+```haskell
+generateSample :: Int -> NGrams -> Int -> [Double] -> String
+generateSample n ngrams wordLimit rands = unwords $ go wordLimit [] rands
+    where
+        go 0 _ _ = []
+        go wLimit nLast (r:rs) = case generateNextWord ngrams (reverse nLast) r of
+            Just w  -> w : go (wLimit - 1) (take (n-1) (w:nLast)) rs
+            Nothing -> []
+```
 ---
 ## Generate next word
 
+```haskell
+generateNextWord :: NGrams -> [String] -> Double -> Maybe String
+generateNextWord (Tree _ 0) _ _ = Nothing
+generateNextWord (Tree ngramsMap _) (w:ws) rand = generateNextWord (lookupWord w ngramsMap) ws rand
+    where
+        lookupWord w ngramsMap = fromMaybe emptyNGrams (M.lookup w ngramsMap)
+generateNextWord (Tree ngramsMap amount) [] r = chooseWord (floor (r* fromIntegral amount))
+    where
+        chooseWord ra = fmap fst . listToMaybe . take 1 . dropWhile (\(_, a) -> a < ra) . reverse $ accumAmounts
+        accumAmounts = snd $ foldl accumAmount (0, []) wordsWithAmounts
+            where accumAmount (lastAmount, ret) (w, wAmount) =
+                    let newAmount = wAmount + lastAmount
+                    in (newAmount, (w, newAmount) : ret)
+        wordsWithAmounts = map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
+```
 ---
 ## Joining it all together
 
+```haskell
+main :: IO ()
+main = do
+    inputHandle <- openFile "./data/combined.txt" ReadMode
+    hSetEncoding inputHandle char8
+    hSetEncoding stdout char8
+    corp <- hGetContents inputHandle
+    let triGrams = loadText 3 corp
+    g <- newStdGen
+    let sample = generateSample 3 triGrams 10000 (randoms g)
+    putStrLn sample
+```
+
 ---
 ## Example output
+
+**Trigrams sourced from *Project Gutenberg* books:**
+
+- Ada Leverson: "Tenterhooks"
+- Bob Evans: "The Forest Monster of Oz"
+- Boswell: "Life Of Johnson, Volume 4 (of 6)"
+- Carolyn Wells: "Patty at Home"
+- Charles Lamb: "The Works of Charles and Mary Lamb, Volume 2"
+- Daniel Drayton: "Personal Memoir Of Daniel Drayton"
+- Euripides: "The Trojan women of Euripides"
+- Frances Elliot: "The Italians"
+- James Otis: "The Minute Boys of the Mohawk Valley"
+- John R. Musick: "The Real America in Romance, Volume 6; A Century Too Soon (A Story"
+- Louis Hughes: "Thirty Years a Slave"
+- S. H. Hammond: "Wild Northern Scenes"
+- Talbot Mundy: "Affair in Araby"
+- Thomas F. A. Smith: "What Germany Thinks"
+- Various: "Punchinello, Vol. 2, No. 27, October 1, 1870"
+- Various: "Punchinello, Vol. II., Issue 31, October 29, 1870"
+- Walter Kellogg Towers: "Masters of Space"
+
+---
+## Example output
+
+**The result:**
+
+With an air of indifference answered, 'A mere trifle Sir, not sensible in every department of its prime, and it does look almost as white as snow, his frame hardened by early severities and wholesome fatigue that he would try for it pleased GOD to restore the Lunechien Forest." "The Lunechien Forest?" echoed the Forest Monster. "In any case," said Spalding, "you are drawing a distinction not warranted by the Peruvian-bark are innumerable. But it was a letter.
+
+This prisoner is charged with condoning perjury in order to keep up on the stairs. "Now my cup of tea in an hour, and landing him safely in from all liability, costs and expenses, including legal fees. YOU AGREE THAT THE FOUNDATION, THE TRADEMARK OWNER, AND ANY DISTRIBUTOR UNDER THIS AGREEMENT WILL NOT BE LIABLE TO YOU FOR ACTUAL, DIRECT, INDIRECT, CONSEQUENTIAL, PUNITIVE OR INCIDENTAL DAMAGES EVEN IF YOU GIVE NOTICE OF THE BEHAVIOUR OF MARRIED PEOPLE As a rule in every direction; and if he means no harm, Bruce. I couldn't live with us." "Humph, I suppose you don't have to make inquiries of the founders of Jamestown Berkeley demands surrender of a mechanically or motor driven mechanism which causes police and denounced.
 
 ---
 ## Quiz

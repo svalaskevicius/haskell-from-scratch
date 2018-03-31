@@ -19,6 +19,9 @@ h1, h2, h3 {
 h1 {
   margin-top: 50%;
 }
+h2 {
+  margin-top: 1em;
+}
 h1, h2 {
     text-align: left;
     margin-bottom: 1.5ex;
@@ -67,6 +70,22 @@ h2:before {
   font-style: oblique;
   font-weight: 200;
 }
+.subheader2 {
+  float: right;
+  clear: both;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  color: #999;
+  text-shadow: 1px 1px #777;
+  margin-top: -4.7ex;
+ /* display: inline-block;
+  position: absolute;
+  right: 1.5em;
+  margin-top: -4.7ex;
+  */
+  font-size: 2em;
+  font-style: oblique;
+  font-weight: 200;
+}
 .remark-slide-content { font-size: 16.8px; }
 .remark-slide-content h1 { font-size: 3.5em; }
 .remark-slide-content h2 { font-size: 2.5em; }
@@ -100,7 +119,8 @@ ul {list-style: none;padding: 0;margin: 0;}
 ul li {
   padding-left: 2em;
   text-indent: -1.5em;
-  line-height: 2em;
+  line-height: 1.2em;
+  margin-bottom: 0.3em;
 }
 ul li::before {
   content: "•";
@@ -131,6 +151,9 @@ ol li:before {
     clear: both;
 }
 .pull-right img {
+  width: 99.99%;
+}
+p > img {
   width: 99.99%;
 }
 .top-right {
@@ -223,4 +246,5 @@ blockquote {
   padding: 0 5px;
   margin: 0 1em;
   color: #108510;
+  font-style: oblique;
 }

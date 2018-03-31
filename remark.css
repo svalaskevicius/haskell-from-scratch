@@ -116,8 +116,13 @@ ol li:before {
 .top-right {
   display: inline-block;
   position: absolute;
-  top: 10px;
-  right: 10px
+  top: 1.5em;
+  right: 1.5em;
+}
+.right {
+  display: inline-block;
+  position: absolute;
+  right: 1.5em;
 }
 #slideshow .slide .content code {
     font-size: 0.8em;

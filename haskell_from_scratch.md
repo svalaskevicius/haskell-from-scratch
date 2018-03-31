@@ -5,6 +5,7 @@ class:
 ---
 # Introduction to Functional Programming
 
+.large[.right[***Šarūnas Valaškevičius, 2018***]]
 ---
 ## What to expect
 
@@ -743,13 +744,19 @@ This allows us to generate sentences, resembling the text used to generate tri-g
 ---
 ## Let's define our type
 
+We'll use a multi-branched tree structure, where, starting from the root of the tree, we can "drill down" to the n-gram statistics by selecting the next word in the n-gram.
+
 ```haskell
 data Tree a b = Tree !(Map a (Tree a b)) !b deriving (Show)
 
 type NGrams = Tree String Integer
 ```
 
-We'll use a multi-branched tree structure,
+First, we define a generic `Tree` type, that contains a value of type `b` and a map, where keys are of a given type `a`, and values - a recursive definition of the same type `Tree a b`.
+
+But hey! What's that `!`? Haskell, being a lazy language, does not alway calculate the results and put in variables. Instead, the default behaviour is for variables to hold information how to calculate the value, and only calculate it when it is needed for the first time (*Lazyness*). `!` makes this type to calculate the values immediatelly, instead of deferring it. It is called the *Strictness operator*.
+
+Our `NGrams` type is simply a type alias to a `Tree` type, where the key is going to be a `String` and the value for each node - an `Integer`. We'll use it as a counter to tell how many times has this n-gram occured in our text.
 
 ---
 ## Adding text

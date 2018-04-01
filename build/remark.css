@@ -1,21 +1,94 @@
-@import url(https://fonts.googleapis.com/css?family=Droid+Serif);
+/*
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
 @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
 @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+*/
+
+@import url(assets/fonts.css);
 
 body {
-    font-family: 'Droid Serif';
+    font-family: 'Open Sans', Helvetica, Verdana, sans-serif;
 }
 h1, h2, h3 {
-    font-family: 'Yanone Kaffeesatz';
-    font-weight: 400;
+    font-family: 'Yanone Kaffeesatz', sans-serif;
+    font-weight: 500;
     margin-bottom: 0;
+    color: #309020;
+    text-shadow: 0.7px 0.6px #206010;
+}
+h1 {
+  margin-top: 50%;
+}
+h2 {
+  margin-top: 1em;
 }
 h1, h2 {
-    text-align: center;
-    margin-bottom: 4ex;
+    text-align: left;
+    margin-bottom: 1.5ex;
+    margin-left: 0;
+    padding-left: 0;
 }
-.remark-slide-content h1 { font-size: 3em; }
-.remark-slide-content h2 { font-size: 2em; }
+h1:before {
+  content: "λ";
+  font-size: 1.1em;
+  padding-right: 30px;
+  padding-left: 30px;
+  color: #e54535;
+  text-shadow: 1px 1px #103000;
+  background-color: #e04030;
+  border-radius: 3px;
+  left: -70px;
+  width: 10px;
+  position: relative;
+  display: inline-block;
+  margin-right: -50px;
+}
+h2:before {
+  content: "λ";
+  font-size: 1.1em;
+  padding-right: 30px;
+  padding-left: 30px;
+  color: #7545e5;
+  text-shadow: 1px 1px #103000;
+  background-color: #7040e0;
+  border-radius: 3px;
+  left: -70px;
+  width: 10px;
+  position: relative;
+  display: inline-block;
+  margin-right: -50px;
+}
+.subheader {
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  color: #999;
+  text-shadow: 1px 1px #777;
+  display: inline-block;
+  position: absolute;
+  font-size: 2.4em;
+  right: 1.5em;
+  margin-top: -1ex;
+  font-style: oblique;
+  font-weight: 200;
+}
+.subheader2 {
+  float: right;
+  clear: both;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  color: #999;
+  text-shadow: 1px 1px #777;
+  margin-top: -4.7ex;
+ /* display: inline-block;
+  position: absolute;
+  right: 1.5em;
+  margin-top: -4.7ex;
+  */
+  font-size: 2em;
+  font-style: oblique;
+  font-weight: 200;
+}
+.remark-slide-content { font-size: 16.8px; }
+.remark-slide-content h1 { font-size: 3.5em; }
+.remark-slide-content h2 { font-size: 2.5em; }
 .remark-slide-content h3 { font-size: 1.6em; }
 .footnote {
     position: absolute;
@@ -29,11 +102,43 @@ a, a > code {
     text-decoration: none;
 }
 code {
-    background: #e7e8e2;
-    border-radius: 5px;
+    background-color:  rgb(248, 248, 255);
+    border-radius: 2px;
+    font-family: 'Ubuntu Mono', monospace;
+    white-space: pre;
 }
-.remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; white-space: pre;}
+.remark-inline-code { 
+    color: rgb(25, 70, 157); /* #307010; */
+    text-shadow: 0.5px 0.2px rgba(25, 70, 157, 5);
+}
 .remark-code-line-highlighted     { background-color: #373832; }
+.remark-code-line { background-color: inherit; }
+p + ul {margin-top: -1.2ex;}
+p + ol {margin-top: -1.2ex;}
+ul {list-style: none;padding: 0;margin: 0;}
+ul li {
+  padding-left: 2em;
+  text-indent: -1.5em;
+  line-height: 1.2em;
+  margin-bottom: 0.3em;
+}
+ul li::before {
+  content: "•";
+  font-size: 1.1em;
+  width: 1em;
+  padding-right: 1em;
+  color: #ff5555;
+}
+ol { counter-reset: item; padding: 0;margin: 0.3em; }
+ol li { display: block; }
+ol li:before {
+  font-size: 0.9em;
+  padding-bottom:0.1em;
+  content: counter(item) ". ";
+  counter-increment: item;
+  color: #ff7777;
+}
+
 .pull-left {
     float: left;
     width: 47%;
@@ -47,6 +152,24 @@ code {
 }
 .pull-right img {
   width: 99.99%;
+}
+p > img {
+  width: 100%;
+  height: auto;
+}
+p .scaleImg60 img {
+  width: 60%;
+}
+.top-right {
+  display: inline-block;
+  position: absolute;
+  top: 1.5em;
+  right: 1.5em;
+}
+.right {
+  display: inline-block;
+  position: absolute;
+  right: 1.5em;
 }
 #slideshow .slide .content code {
     font-size: 0.8em;
@@ -123,7 +246,9 @@ code {
     padding-top: 1em;
 }
 blockquote {
-  border-left: 0.3em solid rgba(255,255,0,0.5);
+  border-left: 0.3em solid #30c010;
   padding: 0 5px;
   margin: 0 1em;
+  color: #108510;
+  font-style: oblique;
 }

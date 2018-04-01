@@ -9,14 +9,14 @@
     </style>
   </head>
   <body>
-    <textarea id="source">name: inverse
+    <textarea id="source">name: FP
 layout: true
-class: inverse
+class:
 
 ---
-class: middle
 # Introduction to Functional Programming
 
+.subheader[Šarūnas Valaškevičius, 2018]
 ---
 ## What to expect
 
@@ -24,6 +24,7 @@ class: middle
 - basic Haskell syntax (yes, we'll use Haskell!)
 - being able to build a program!
 
+---
 ## Why Haskell?
 
 - It's purely functional, so it's easier to identify the concepts being explained.
@@ -57,7 +58,7 @@ myFunction arg1 arg2
 Functions can also be *pure* and *total*.
 
 ---
-## Pure functions
+## Pure functions
 A function where the return value can only be affected by its input parameters, and it does not
 produce any observable side-effect is called a *pure* function - the only effect of the function is
 the produced return value.
@@ -120,7 +121,7 @@ x :: MyType
 ```
 
 ---
-## List
+## List
 
 A data structure that keeps a list of elements of the same type.
 
@@ -157,7 +158,7 @@ For example:
 
 
 We can specify the increment amount for a range by telling the compiler what
-the second elment of the sequence will be:
+the second element of the sequence will be:
 
 ```Haskell
 > [1,3..11]
@@ -187,18 +188,30 @@ Because Haskell is lazy, you can create such lists and the compiler will be
 able to handle them.
 
 ---
-## Going further
+## Checkpoint
 
+So far, we have covered:
+
+- Pure functions
+- Total functions
+- Defining data types
+- Lists
+- Ranges
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+
+---
+## Going further
 
 Let's look as some more advanced features provided by Haskell:
 
- - Pattern matching
- - Strong type system
- - Curried functions
- - Lambda functions
- - Composing two functions
- - Higher order functions
- - Lazy evaluation
+- Pattern matching
+- Strong type system
+- Curried functions
+- Lambda functions
+- Composing two functions
+- Higher order functions
+- Lazy evaluation
 
 ---
 ## Pattern matching
@@ -223,7 +236,7 @@ maybeDiv 10 0 == Nothing -- True
 ```
 
 ---
-## Pattern matching
+## Pattern matching
 
 Let's create a Fibonacci number generator!
 
@@ -239,7 +252,7 @@ fib n = fib (n-1) + fib (n-2)
  - If the above checks don't match, the input argument is matched against a variable `n`, which will match *any value* that was passed to the function, and place it in the variable `n`. At this point, the variable `n` can be used in the expression on the right side to make recursive calls to `fib` (`fib n = fib (n-1) + fib (n-2)`).
 
 ---
-## Destructuring matching
+## Destructuring matching
 
 ```Haskell
 maybePlus :: Int -> Maybe Int -> Maybe Int
@@ -288,7 +301,7 @@ maybePlus (maybeDiv 10 0) 10
 ```
 
 ---
-## Strong typing
+## Strong typing
 
 ```Haskell
 map :: (a -> b) -> [a] -> [b]
@@ -388,10 +401,10 @@ Note: *Prelude* is a standard library enabled by default for all Haskell program
 ## Higher order functions
 
 Wikipedia:
-> *In mathematics and computer science, a higher-order function is a function that does at least one of the following:*
+> In mathematics and computer science, a higher-order function is a function that does at least one of the following:
 >
-> - *takes one or more functions as an input*
-> - *outputs a function*
+> - takes one or more functions as an input
+> - outputs a function
 
 For example, *map* and *fold* (reduce) are very common higher order functions in functional paradigm.
 
@@ -419,21 +432,14 @@ foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
 ```
 
 ---
-## a
-
-.pull-right{![Right-aligned image](assets/fibonacci.jpg)}
-
-a
-
-## ... or even
+## ... or even
 
 ```Haskell
 fibs :: [Integer]
 fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 ```
 
-.pull-right{![Right-aligned image](assets/fibonacci.jpg)}
-![Right-aligned image](assets/fibonacci.jpg)
+.pull-right[![Fibonacci algorithm](assets/fibonacci.jpg)]
 
 This defines a Fibonacci sequence, as an infinite recursive function.
 
@@ -449,7 +455,23 @@ not be stuck calculating the sequence numbers forever, even
 though there is no exit condition defined in the function `fibs`.
 
 ---
-# A practical example
+## Checkpoint
+
+So far, we have covered:
+
+- Pattern matching
+- Destructuring matching
+- Strong typing
+- Curried functions
+- Lambda functions
+- Composing two functions
+- Higher order functions
+- Lazy evaluation
+- Lazy Fibonacci numbers generator
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+---
+# A practical example
 
 ---
 ## Let's build an application!
@@ -458,7 +480,7 @@ We'll start with a simple one - an application
 that prints sorted numerical arguments.
 
 ---
-## Defining main
+## Defining main
 
 ```Haskell
 main :: IO ()
@@ -512,7 +534,8 @@ Because Haskell is a pure functional programming language, it does not allow pri
 
 The answer is - `IO` monad.
 
-## Monad?
+---
+## Monad?
 
 A simple description is - it allows defining chained actions in a specific context. A convenient way to express such chained actions is using the *do notation*:
 
@@ -528,7 +551,7 @@ main = do
 ```
 
 ---
-## Monad
+## Monad
 
 ```Haskell
 worldType :: IO String
@@ -586,7 +609,7 @@ Notice, that it does not need to interact with I/O and is considered a *pure* fu
 Also, it does not have a function signature! This lets the Haskell compiler to infer the actual types based on both the usage and implementation of the function as we'll see in the further examples.
 
 ---
-## ...sort
+## ...sort
 
 But how can we use it?
 
@@ -630,7 +653,7 @@ main = do
 It's working!
 
 ```
-# runghc test.hs 10 100 20
+> runghc test.hs 10 100 20
 10 100 20
 ```
 
@@ -654,14 +677,14 @@ main = do
 That's better:
 
 ```
-runghc test.hs 10 100 20 asd
+> runghc test.hs 10 100 20 asd
 10 20 100
 ```
 
 Note: to convert the integers back to strings, we have used the `show` function.
 
 ---
-## Combine functions
+## Combine functions
 
 As we have a working application, let's make it a bit nicer. We'll create small, descriptive functions to be able to *read* the program easily:
 
@@ -705,11 +728,29 @@ main = do
     args <- getArgs
     putStrLn (sortStringsAsIntegers args)
 ```
+
+---
+## Checkpoint
+
+In this section we have looked at:
+
+- Defining main
+- Unit ()
+- The `return` function
+- IO type
+- Monad
+- App arguments
+- Quicksort algorithm
+- Print results
+- Converting to integers
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+
 ---
 # N-Grams example
 
 ---
-## What is an n-gram?
+## What is an n-gram?
 
 An n-gram is a continuous sequence of *n* items from a given sample of text.
 
@@ -758,7 +799,9 @@ We can use this model as a *Markov chain* (from Oxford dictionaries):
 This allows us to generate sentences, resembling the text used to generate tri-grams, although the semantics of the result will be lost.
 
 ---
-## Let's define our type
+## Let's define our type
+
+We'll use a multi-branched tree structure, where, starting from the root of the tree, we can "drill down" to the n-gram statistics by selecting the next word in the n-gram.
 
 ```haskell
 data Tree a b = Tree !(Map a (Tree a b)) !b deriving (Show)
@@ -766,27 +809,545 @@ data Tree a b = Tree !(Map a (Tree a b)) !b deriving (Show)
 type NGrams = Tree String Integer
 ```
 
-We'll use a multi-branched tree structure,
+First, we define a generic `Tree` type, that contains a value of type `b` and a map, where keys are of a given type `a`, and values - a recursive definition of the same type `Tree a b`.
+
+But hey! What's that `!`? Haskell, being a lazy language, does not alway calculate the results and put in variables. Instead, the default behaviour is for variables to hold information how to calculate the value, and only calculate it when it is needed for the first time (*Laziness*). `!` makes this type to calculate the values immediately, instead of deferring it. It is called the *Strictness operator*.
+
+Our `NGrams` type is simply a type alias to a `Tree` type, where the key is going to be a `String` and the value for each node - an `Integer`. We'll use it as a counter to tell how many times has this n-gram occurred in our text.
 
 ---
-## Adding text
+## Adding text (single n-gram)
 
-## Generating new sentences
+We'll start from an empty `NGrams` instance:
+```haskell
+emptyNGrams = Tree M.empty 0
+```
 
-## Quiz
+It is simply an empty tree, with `0` as the occurrence counter. Let's now define a function that can add an NGram (list of words) to the data structure.
 
-##
+```haskell
+addNGram :: NGrams -> [String] -> NGrams
+addNGram (Tree ngramsMap amount) (word:ws) =
+    Tree (M.alter addToNGramsMap word ngramsMap) (amount + 1)
+    where addToNGramsMap Nothing  = Just $ addNGram emptyNGrams ws
+          addToNGramsMap (Just m) = Just $ addNGram m ws
+addNGram (Tree ngramsMap amount) [] = Tree ngramsMap (amount + 1)
+```
 
+We use pattern matching, also destructure the ngram argument to the first `word` and the rest (`ws`).
 
 ---
-# Thanks!
+## Adding text (single n-gram)
 
-.center[![Haskell logo](assets/haskell_logo.png)]
+Let's check both cases separately:
+
+```haskell
+addNGram (Tree ngramsMap amount) (word:ws) =
+    Tree (M.alter addToNGramsMap word ngramsMap) (amount + 1)
+    where addToNGramsMap Nothing  = Just $ addNGram emptyNGrams ws
+          addToNGramsMap (Just m) = Just $ addNGram m ws
+```
+
+- If there was no element with the given word already, then we'll recursively add `ws` to an empty `NGrams` and update the `Tree` for the given word with the result.
+- If there was an existing `Tree` for the given word we'll add the rest of the words (`ws`) to it.
+
+Importantly, both cases also increment the counter - `amount + 1`.
+
+```haskell
+addNGram (Tree ngramsMap amount) [] = Tree ngramsMap (amount + 1)
+```
+
+Once the recursion comes to the state where the list of words is empty, we'll simply increment the amount (to denote that the state was visited during word addition), and leave the map as it was.
+
+---
+## Adding text (single n-gram)
+
+Once we have added a few n-grams, our `NGrams` structure looks like this:
+
+![NGrams structure](assets/ngrams_structure.jpg)
+
+---
+## Loading text content
+
+We'll define a function, that takes an integer `n` - to generate n-grams, input text as a `String`, and will return the generated `NGrams` structure.
+
+```haskell
+loadText :: Int -> String -> NGrams
+```
+
+To implement it, we'll need to clean up the input text, generate ngrams, and add them all to an empty `NGrams` structure. All this is done by the line here:
+
+```haskell
+loadText n = foldl addNGram emptyNGrams . ngrams . filtered
+```
+
+Of course, we'll need to define the actual functions:
+
+```haskell
+    where
+        filtered =  nlToSpace . filter (/= '\r')
+
+        ngrams = fmap (take n) . tails . words
+
+        nlToSpace []           = []
+        nlToSpace ('-':'\n':s) = nlToSpace s
+        nlToSpace ('\n':s)     = ' ':nlToSpace s
+        nlToSpace (x:xs)       = x:nlToSpace xs
+```
+
+---
+## Loading text content
+
+Let's look at them one by one:
+
+```haskell
+filtered = nlToSpace . filter (/= '\r')
+```
+
+We'll remove all carriage return characters (`\r`), and join new lines with spaces:
+
+```haskell
+nlToSpace []           = []
+nlToSpace ('-':'\n':s) = nlToSpace s
+nlToSpace ('\n':s)     = ' ':nlToSpace s
+nlToSpace (x:xs)       = x:nlToSpace xs
+```
+
+`nlToSpace` is a recursive function, as it needs some more context for pattern matching - e.g. if a line ends with a `-` the function will not add a space, but will just remove both the dash `-` and the following new line character `\n`.
+
+---
+## Loading text content
+
+To generage n-grams, we split the input string to words, and return all possible tails of a given list, later reducing each tail to the size of the requested `n`.
+
+```haskell
+ngrams = fmap (take n) . tails . words
+```
+
+![NGrams generation](assets/ngrams.jpg)
+
+---
+## Loading text content
+
+The last step is to add all generated ngrams to an empty `NGrams` data structure:
+
+```haskell
+foldl addNGram emptyNGrams ngrams
+```
+
+We have already defined the `addNGram` before, so now we just need to *fold* that function for all generated ngrams.
+
+```haskell
+class Foldable (t :: * -> *) where
+    foldl :: (b -> a -> b) -> b -> t a -> b
+```
+
+A `class`? Yes, it's a typeclass.
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+From "Learn You a Haskell for Great Good!":
+
+> A typeclass is a sort of interface that defines some behavior. If a type is a part of a typeclass, that means that it supports and implements the behavior the typeclass describes. A lot of people coming from OOP get confused by typeclasses because they think they are like classes in object oriented languages.
+
+Typeclasses are:
+- similar to interfaces/abstract classes in OO
+- can have default implementation
+
+```haskell
+countSame :: Eq a => a -> [a] -> Int
+```
+
+- `a` is a variable type - we can call it with any types that satisfy the constraints (that have an
+  instance of `Eq` type class defined for them).
+- `Eq` is a typeclass that we require for the type `a`. It is defined by the Haskell library, and
+specifies that the equality functions for the type `a` are defined (`==`), otherwise it will not
+compile.
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+```haskell
+countSame :: Eq a => a -> [a] -> Int
+```
+
+Given the above function signature, we can say that:
+
+- we only require **to be able** to compare variables of type `a`
+- we only **can** compare the variables of type `a`
+- **the same type** `a` has to be passed to the 1st and 2nd params
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+Typeclasses are defined like this:
+
+```haskell
+class  Eq a  where
+    (==), (/=)           :: a -> a -> Bool
+
+    x /= y               = not (x == y)
+    x == y               = not (x /= y)
+```
+
+The users of a library can choose which function to implement - `==` or `/=`, because the other one will then be able to use the default behaviour of negating the implemented one.
+
+Creating new instances:
+
+```haskell
+data MyType = MyType Int
+
+instance Eq MyType where
+    (MyType a) == (MyType b) = a == b
+```
+
+---
+## What's a type class?
+.subheader2[we'll return to the example soon]
+
+Usage in functions:
+
+```haskell
+countSame :: Eq a => a -> [a] -> Int
+countSame x = foldl (\s el -> if el == x then s + 1 else s) 0
+```
+
+Back to *fold*!
+
+```haskell
+class Foldable (t :: * -> *) where
+    foldl :: (b -> a -> b) -> b -> t a -> b
+```
+
+It takes a function that takes a `b` and an `a` and returns a `b` - after applying the `a` to the original `b`, `foldl` then takes an initial `b` value, and a `t a`, where `t` is `Foldable` (in our example it is a list) and contains values of `a`. The fold function then goes through all of the values `a` in our list, and applies to the `b` value, always accumulating the result.
+
+Let's try with `countSame` - `foldl` takes a function `(\s el -> if el == x then s + 1 else s)` - which takes `s` and `el` - and if `el` is equal to the parameter given earlier, it increments `s` by returning `s + 1` or leaves it the same as before. `foldl` will start with the initial value of `0`, and the last parameter - the `[a]` is going to be passed when invoking `countSame` (remember currying?).
+
+---
+## Loading text content
+
+Let's check our `loadText` again:
+
+```haskell
+loadText :: Int -> String -> NGrams
+loadText n = foldl addNGram emptyNGrams . ngrams . filtered
+    where
+        filtered =  nlToSpace . filter (/= '\r')
+
+        nlToSpace []           = []
+        nlToSpace ('-':'\n':s) = nlToSpace s
+        nlToSpace ('\n':s)     = ' ':nlToSpace s
+        nlToSpace (x:xs)       = x:nlToSpace xs
+
+        ngrams = fmap (take n) . tails . words
+```
+
+We can read it now as:
+
+- We'll fold over the ngrams from the filtered input string with addNGram, starting with emptyNGrams;
+- *where* by filtering we mean to just remove the carriage returns and convert new lines to spaces;
+- ngrams are simply tails of words from the given string, all limited to the requested length.
+---
+## Generating new sentences
+
+So now that we have an `NGrams` structure populated with data, how do we use it?
+
+Let's look at what are we going to need:
+
+- we'll need to know the n for n-grams that we expect to generate,
+- also the ngrams data,
+- a number of words that we should generate,
+- and a source of random numbers, to be used to select words.
+
+We'll return the generated text as a string.
+
+In Haskell this could look like this:
+
+```haskell
+generateSample :: Int -> NGrams -> Int -> [Double] -> String
+generateSample n ngrams wordLimit rands = undefined
+```
+
+---
+## Generating new sentences
+
+Let's assume that we have a function that generates the next word given the last (n-1):
+```haskell
+generateNextWord :: NGrams -> [String] -> Double -> Maybe String
+generateNextWord ngrams lastWords rand = undefined
+```
+
+How can we use it? One example could be like this:
+
+```haskell
+go 0 _ _ = []
+go wLimit lastWords (r:rs) = case generateNextWord ngrams (reverse lastWords) r of
+    Just w  -> w : go (wLimit - 1) (take (n-1) (w:lastWords)) rs
+    Nothing -> []
+```
+
+- using recursion to generate up to `wLimit` of words - notice the pattern capture for `0` case and reduction of it when recursing;
+- we'll maintain `lastWords` and prepend the last generated word to it when recursing, limiting it's length to `n - 1`;
+- we'll use the first random number `r` for generating next word, and pass the rest of them `rs` to generate subsequent words;
+
+*Note:* this example uses `case .. of` pattern matching syntax not mentioned before.
+
+*Question:* why do we use `reverse lastWords` in the `generateNextWord` expression?
+
+---
+## Generating new sentences
+
+So now that we have the core implementation of the function, let's wrap it to our expected API:
+
+```haskell
+generateSample :: Int -> NGrams -> Int -> [Double] -> String
+generateSample n ngrams wordLimit rands = unwords $ go wordLimit [] rands
+    where
+        go 0 _ _ = []
+        go wLimit lastWords (r:rs) =
+            case generateNextWord ngrams (reverse lastWords) r of
+                Just w  -> w : go (wLimit - 1) (take (n-1) (w:lastWords)) rs
+                Nothing -> []
+```
+
+`generateSample` is the results of the function go, where all words are joined to a string by `unwords`.
+
+We also see a new Haskell function used here - `$`.
+
+```haskell
+($) :: (a -> b) -> a -> b
+infixr 0 $
+```
+
+The function simply avoids the need of parenthesis `()` around the second argument and generally can be considered as a syntactic helper. The expression `unwords $ go wordLimit [] rands` above could also have been written as `unwords (go wordLimit [] rands)` with exactly the same effect.
+
+---
+## Generate next word
+
+.pull-right[![Selecting next word](assets/ngrams_word_selection.jpg)]
+
+We've mentioned before that we'll need to generate the next word, and we'll likely need these arguments for it:
+
+- the populated `NGrams` structure,
+- previous words in the n-gram,
+- a random number for selecting the next word.
+
+We'll either return the next word as string, or nothing, if we cannot find any suitable words.
+
+Let's think how can we generate the next word (intuitively):
+
+- we should "drill down" in the `NGrams` structure by the given previous words - this leaves us an `NGrams` structure with only those words from the given context;
+- we'll select one word from the top level words of that structure;
+- to preserve the distribution of words same as in our input texts, we'll use a "weighted roulette" approach:
+    - each word is annotated with frequency of it's occurrence *(in red)*;
+    - we'll sum (rolling) those frequencies for all words *(in green)*;
+    - we'll scale the given "random" number from 0 to the total amount of occurrences *(8)*;
+    - and finally we'll pick the first word greater than our scaled random value.
+
+---
+## Generate next word
+
+How does this look in Haskell?
+
+First, an empty ngrams data will not produce any words:
+
+```haskell
+generateNextWord (Tree _ 0) _ _ = Nothing
+```
+
+Otherwise, if we have words in our context, let's drill down to the `NGrams` data:
+
+```haskell
+generateNextWord (Tree ngramsMap _) (w:ws) rand =
+        generateNextWord (lookupWord w ngramsMap) ws rand
+    where
+        lookupWord w ngramsMap = fromMaybe emptyNGrams (M.lookup w ngramsMap)
+```
+
+---
+## Generate next word
+
+Let's start with scaling the random number. We'll expect a floating point number in the range *[0, 1)*, and convert it
+to an integer range *[0, amount)*:
+
+```haskell
+generateNextWord (Tree ngramsMap amount) [] r = ...
+    where
+        scaledRandom = floor (r * fromIntegral amount)
+```
+
+.pull-right[![Selecting next word](assets/ngrams_word_selection.jpg)]
+
+Great, that was easy! The next step is to select all words with their occurrence amounts *(the red numbers on the right)*:
+
+```haskell
+wordsWithAmounts =
+    map (\(w, Tree _ wAmount) -> (w, wAmount)) .
+        M.toList $ ngramsMap
+```
+
+We'll convert the `ngramsMap` to a list, and map it only "pulling out" the word `w` and its occurrence amount `wAmount`.
+
+*Note:* we're using a *tuple* here as our return type - `(w, wAmount)` - it contains both values.
+
+---
+## Generate next word
+
+.pull-right[![Selecting next word](assets/ngrams_word_selection.jpg)]
+
+Now that we have extracted words and their occurrence amounts, let's convert them to accumulative occurrence amounts *(the numbers in green on the right)*:
+
+```haskell
+accumAmounts = reverse . snd $
+    foldl accumAmount (0, []) wordsWithAmounts
+where accumAmount (lastAmount, ret) (w, wAmount) =
+    let newAmount = wAmount + lastAmount
+    in (newAmount, (w, newAmount) : ret)
+```
+
+This may not be an optimal solution, but it describes our intuitive solution in Haskell and allows us to run it.
+
+We'll foldl over the `wordsWithAmounts` with an integer accumulator, and replace the amount with the accumulated amount in the function output. Because prepending list is much faster, we'll prepend to our resulting list, thus reversing its order from the original `wordsWithAmounts`. To compensate for that, we'll reverse the output again before returning it.
+
+*Note:* we have introduced another syntax element in this example - `let ... in ...` - which is similar to using `where` in effect, but might look more natural in some expressions.
+
+---
+## Generate next word
+
+Now that we have built our "roulette" wheel, let's pick a value from it:
+
+```haskell
+pickByRand = take 1 . dropWhile (\(_, a) -> a < scaledRandom)
+```
+
+This was quite easy - drop all elements where the accumulator is smaller than our scaled random number, and take the next element (if it exists).
+
+Instead of defining a lambda function, we can also write it by composing curried functions, like this:
+
+```haskell
+pickByRand = take 1 . dropWhile ((< scaledRandom) . snd)
+```
+
+---
+## Generate next word
+
+Finally, the full function to generate the next word:
+
+```haskell
+generateNextWord (Tree ngramsMap amount) [] r =
+        fmap fst . listToMaybe . pickByRand $ accumAmounts
+    where
+        scaledRandom = floor (r * fromIntegral amount)
+        pickByRand = take 1 . dropWhile ((< scaledRandom) . snd)
+        accumAmounts = reverse . snd $ foldl accumAmount (0, []) wordsWithAmounts
+            where accumAmount (lastAmount, ret) (w, wAmount) =
+                    let newAmount = wAmount + lastAmount
+                    in (newAmount, (w, newAmount) : ret)
+        wordsWithAmounts =
+            map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
+```
+
+---
+## Joining it all together
+
+Now that we have defined all required functions, let's coordinate them to run our application:
+
+```haskell
+main :: IO ()
+main = do
+    inputHandle <- openFile "./data/combined.txt" ReadMode
+    hSetEncoding inputHandle char8
+    hSetEncoding stdout char8
+    corp <- hGetContents inputHandle
+    let triGrams = loadText 3 corp
+    g <- newStdGen
+    let sample = generateSample 3 triGrams 10000 (randoms g)
+    putStrLn sample
+```
+
+*Note:* retrieving random numbers is an `IO` action, so we are only allowed to call it in this context, however, we can ask here to retrieve an infinite stream of random numbers, and use it later in our functions (which we have done already).
+
+---
+## Example output
+
+**Trigrams sourced from *Project Gutenberg* books (1355680 words):**
+
+- Ada Leverson: "Tenterhooks"
+- Bob Evans: "The Forest Monster of Oz"
+- Boswell: "Life Of Johnson, Volume 4 (of 6)"
+- Carolyn Wells: "Patty at Home"
+- Charles Lamb: "The Works of Charles and Mary Lamb, Volume 2"
+- Daniel Drayton: "Personal Memoir Of Daniel Drayton"
+- Euripides: "The Trojan women of Euripides"
+- Frances Elliot: "The Italians"
+- James Otis: "The Minute Boys of the Mohawk Valley"
+- John R. Musick: "The Real America in Romance, Volume 6; A Century Too Soon (A Story"
+- Louis Hughes: "Thirty Years a Slave"
+- S. H. Hammond: "Wild Northern Scenes"
+- Talbot Mundy: "Affair in Araby"
+- Thomas F. A. Smith: "What Germany Thinks"
+- Various: "Punchinello, Vol. 2, No. 27, October 1, 1870"
+- Various: "Punchinello, Vol. II., Issue 31, October 29, 1870"
+- Walter Kellogg Towers: "Masters of Space"
+
+---
+## Example output
+
+**The result:**
+
+With an air of indifference answered, 'A mere trifle Sir, not sensible in every department of its prime, and it does look almost as white as snow, his frame hardened by early severities and wholesome fatigue that he would try for it pleased GOD to restore the Lunechien Forest." "The Lunechien Forest?" echoed the Forest Monster. "In any case," said Spalding, "you are drawing a distinction not warranted by the Peruvian-bark are innumerable. But it was a letter.
+
+This prisoner is charged with condoning perjury in order to keep up on the stairs. "Now my cup of tea in an hour, and landing him safely in from all liability, costs and expenses, including legal fees. YOU AGREE THAT THE FOUNDATION, THE TRADEMARK OWNER, AND ANY DISTRIBUTOR UNDER THIS AGREEMENT WILL NOT BE LIABLE TO YOU FOR ACTUAL, DIRECT, INDIRECT, CONSEQUENTIAL, PUNITIVE OR INCIDENTAL DAMAGES EVEN IF YOU GIVE NOTICE OF THE BEHAVIOUR OF MARRIED PEOPLE As a rule in every direction; and if he means no harm, Bruce. I couldn't live with us." "Humph, I suppose you don't have to make inquiries of the founders of Jamestown Berkeley demands surrender of a mechanically or motor driven mechanism which causes police and denounced.
+
+---
+## Checkpoint
+
+We've looked at:
+
+- What is an n-gram and how can we use it?
+- Creating custom `Tree` types
+- Loading text to `NGrams` data and generating text from it
+- Typeclasses!
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+
+---
+## Quiz time!
+
+- how to improve performance of generating the next word?
+
+---
+## Improved word selection
+
+Instead of building the accumulated sums, we can directly reduce the limited until we reach 0 or less - we'll know then that we have reached the word on our roulette and can return it immediately (instead of continuing to accumulate numbers):
+
+```haskell
+generateNextWord (Tree ngramsMap amount) [] r =
+        selectByAmountLim scaledRandom wordsWithAmounts
+    where
+        scaledRandom = floor (r * fromIntegral amount)
+        selectByAmountLim _ [] = Nothing
+        selectByAmountLim lim ((w, wAmount):ws)
+            | nextLim <= 0 = Just w
+            | otherwise = selectByAmountLim nextLim ws
+            where nextLim = lim - wAmount
+        wordsWithAmounts =
+            map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
+```
+
+---
+# Thanks!
+
+.top-right[![Haskell logo](assets/haskell_logo.png)]
 </textarea>
     <script src="remark.js"></script>
     
     <script>
-      window.slideshow = remark.create({})
+      window.slideshow = remark.create({"highlightStyle":"docco","navigation":{"scroll":false}})
     </script>
     <script>
       

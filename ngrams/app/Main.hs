@@ -27,17 +27,27 @@ addNGram (Tree ngramsMap amount) [] = Tree ngramsMap (amount + 1)
 
 generateNextWord :: NGrams -> [String] -> Double -> Maybe String
 generateNextWord (Tree _ 0) _ _ = Nothing
-generateNextWord (Tree ngramsMap _) (w:ws) rand = generateNextWord (lookupWord w ngramsMap) ws rand
+generateNextWord (Tree ngramsMap _) (w:ws) rand =
+        generateNextWord (lookupWord w ngramsMap) ws rand
     where
         lookupWord w ngramsMap = fromMaybe emptyNGrams (M.lookup w ngramsMap)
-generateNextWord (Tree ngramsMap amount) [] r = chooseWord (floor (r* fromIntegral amount))
+generateNextWord (Tree ngramsMap amount) [] r =
+        -- fmap fst . listToMaybe . pickByRand $ accumAmounts
+        selectByAmountLim scaledRandom wordsWithAmounts
     where
-        chooseWord ra = fmap fst . listToMaybe . take 1 . dropWhile (\(_, a) -> a < ra) . reverse $ accumAmounts
-        accumAmounts = snd $ foldl accumAmount (0, []) wordsWithAmounts
+        scaledRandom = floor (r * fromIntegral amount)
+        pickByRand = take 1 . dropWhile ((< scaledRandom) . snd)
+        accumAmounts = reverse . snd $ foldl accumAmount (0, []) wordsWithAmounts
             where accumAmount (lastAmount, ret) (w, wAmount) =
                     let newAmount = wAmount + lastAmount
                     in (newAmount, (w, newAmount) : ret)
-        wordsWithAmounts = map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
+        selectByAmountLim _ [] = Nothing
+        selectByAmountLim lim ((w, wAmount):ws)
+            | nextLim <= 0 = Just w
+            | otherwise = selectByAmountLim nextLim ws
+            where nextLim = lim - wAmount
+        wordsWithAmounts =
+            map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
 
 loadText :: Int -> String -> NGrams
 loadText n = foldl addNGram emptyNGrams . ngrams . words . filtered
@@ -53,9 +63,10 @@ generateSample :: Int -> NGrams -> Int -> [Double] -> String
 generateSample n ngrams wordLimit rands = unwords $ go wordLimit [] rands
     where
         go 0 _ _ = []
-        go wLimit nLast (r:rs) = case generateNextWord ngrams (reverse nLast) r of
-            Just w  -> w : go (wLimit - 1) (take (n-1) (w:nLast)) rs
-            Nothing -> []
+        go wLimit lastWords (r:rs) =
+            case generateNextWord ngrams (reverse lastWords) r of
+                Just w  -> w : go (wLimit - 1) (take (n-1) (w:lastWords)) rs
+                Nothing -> []
 
 main :: IO ()
 main = do

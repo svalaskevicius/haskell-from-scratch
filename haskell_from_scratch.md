@@ -177,18 +177,30 @@ Because Haskell is lazy, you can create such lists and the compiler will be
 able to handle them.
 
 ---
-## Going further
+## Checkpoint
 
+So far, we have covered:
+
+- Pure functions
+- Total functions
+- Defining data types
+- Lists
+- Ranges
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+
+---
+## Going further
 
 Let's look as some more advanced features provided by Haskell:
 
- - Pattern matching
- - Strong type system
- - Curried functions
- - Lambda functions
- - Composing two functions
- - Higher order functions
- - Lazy evaluation
+- Pattern matching
+- Strong type system
+- Curried functions
+- Lambda functions
+- Composing two functions
+- Higher order functions
+- Lazy evaluation
 
 ---
 ## Pattern matching
@@ -432,6 +444,22 @@ not be stuck calculating the sequence numbers forever, even
 though there is no exit condition defined in the function `fibs`.
 
 ---
+## Checkpoint
+
+So far, we have covered:
+
+- Pattern matching
+- Destructuring matching
+- Strong typing
+- Curried functions
+- Lambda functions
+- Composing two functions
+- Higher order functions
+- Lazy evaluation
+- Lazy Fibonacci numbers generator
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+---
 # A practical example
 
 ---
@@ -614,7 +642,7 @@ main = do
 It's working!
 
 ```
-# runghc test.hs 10 100 20
+> runghc test.hs 10 100 20
 10 100 20
 ```
 
@@ -638,7 +666,7 @@ main = do
 That's better:
 
 ```
-runghc test.hs 10 100 20 asd
+> runghc test.hs 10 100 20 asd
 10 20 100
 ```
 
@@ -689,6 +717,24 @@ main = do
     args <- getArgs
     putStrLn (sortStringsAsIntegers args)
 ```
+
+---
+## Checkpoint
+
+In this section we have looked at:
+
+- Defining main
+- Unit ()
+- The `return` function
+- IO type
+- Monad
+- App arguments
+- Quicksort algorithm
+- Print results
+- Converting to integers
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+
 ---
 # N-Grams example
 
@@ -997,35 +1043,207 @@ We can read it now as:
 ---
 ## Generating new sentences
 
+So now that we have an `NGrams` structure populated with data, how do we use it?
+
+Let's look at what are we going to need:
+
+- we'll need to know the n for n-grams that we expect to generate,
+- also the ngrams data,
+- a number of words that we should generate,
+- and a source of random numbers, to be used to select words.
+
+We'll return the generated text as a string.
+
+In Haskell this could look like this:
+
+```haskell
+generateSample :: Int -> NGrams -> Int -> [Double] -> String
+generateSample n ngrams wordLimit rands = undefined
+```
+
+---
+## Generating new sentences
+
+Let's assume that we have a function that generates the next word given the last (n-1):
+```haskell
+generateNextWord :: NGrams -> [String] -> Double -> Maybe String
+generateNextWord ngrams lastWords rand = undefined
+```
+
+How can we use it? One example could be like this:
+
+```haskell
+go 0 _ _ = []
+go wLimit lastWords (r:rs) = case generateNextWord ngrams (reverse lastWords) r of
+    Just w  -> w : go (wLimit - 1) (take (n-1) (w:lastWords)) rs
+    Nothing -> []
+```
+
+- using recursion to generate up to `wLimit` of words - notice the pattern capture for `0` case and reduction of it when recursing;
+- we'll maintain `lastWords` and prepend the last generated word to it when recursing, limiting it's length to `n - 1`;
+- we'll use the first random number `r` for generating next word, and pass the rest of them `rs` to generate subsequent words;
+
+*Note:* this example uses `case .. of` pattern matching syntax not mentioned before.
+
+*Question:* why do we use `reverse lastWords` in the `generateNextWord` expression?
+
+---
+## Generating new sentences
+
+So now that we have the core implementation of the function, let's wrap it to our expected API:
+
 ```haskell
 generateSample :: Int -> NGrams -> Int -> [Double] -> String
 generateSample n ngrams wordLimit rands = unwords $ go wordLimit [] rands
     where
         go 0 _ _ = []
-        go wLimit nLast (r:rs) = case generateNextWord ngrams (reverse nLast) r of
-            Just w  -> w : go (wLimit - 1) (take (n-1) (w:nLast)) rs
-            Nothing -> []
+        go wLimit lastWords (r:rs) =
+            case generateNextWord ngrams (reverse lastWords) r of
+                Just w  -> w : go (wLimit - 1) (take (n-1) (w:lastWords)) rs
+                Nothing -> []
 ```
+
+`generateSample` is the results of the function go, where all words are joined to a string by `unwords`.
+
+We also see a new Haskell function used here - `$`.
+
+```haskell
+($) :: (a -> b) -> a -> b
+infixr 0 $
+```
+
+The function simply avoids the need of parenthesis `()` around the second argument and generally can be considered as a syntactic helper. The expression `unwords $ go wordLimit [] rands` above could also have been written as `unwords (go wordLimit [] rands)` with exactly the same effect.
+
 ---
 ## Generate next word
 
+.pull-right[![Selecting next word](assets/ngrams_word_selection.jpg)]
+
+We've mentioned before that we'll need to generate the next word, and we'll likely need these arguments for it:
+
+- the populated `NGrams` structure,
+- previous words in the n-gram,
+- a random number for selecting the next word.
+
+We'll either return the next word as string, or nothing, if we cannot find any suitable words.
+
+Let's think how can we generate the next word (intuitively):
+
+- we should "drill down" in the `NGrams` structure by the given previous words - this leaves us an `NGrams` structure with only those words from the given context;
+- we'll select one word from the top level words of that structure;
+- to preserve the distribution of words same as in our input texts, we'll use a "weighted roulette" approach:
+    - each word is annotated with frequency of it's occurrence *(in red)*;
+    - we'll sum (rolling) those frequencies for all words *(in green)*;
+    - we'll scale the given "random" number from 0 to the total amount of occurrences *(8)*;
+    - and finally we'll pick the first word greater than our scaled random value.
+
+---
+## Generate next word
+
+How does this look in Haskell?
+
+First, an empty ngrams data will not produce any words:
+
 ```haskell
-generateNextWord :: NGrams -> [String] -> Double -> Maybe String
 generateNextWord (Tree _ 0) _ _ = Nothing
-generateNextWord (Tree ngramsMap _) (w:ws) rand = generateNextWord (lookupWord w ngramsMap) ws rand
+```
+
+Otherwise, if we have words in our context, let's drill down to the `NGrams` data:
+
+```haskell
+generateNextWord (Tree ngramsMap _) (w:ws) rand =
+        generateNextWord (lookupWord w ngramsMap) ws rand
     where
         lookupWord w ngramsMap = fromMaybe emptyNGrams (M.lookup w ngramsMap)
-generateNextWord (Tree ngramsMap amount) [] r = chooseWord (floor (r* fromIntegral amount))
+```
+
+---
+## Generate next word
+
+Let's start with scaling the random number. We'll expect a floating point number in the range *[0, 1)*, and convert it
+to an integer range *[0, amount)*:
+
+```haskell
+generateNextWord (Tree ngramsMap amount) [] r = ...
     where
-        chooseWord ra = fmap fst . listToMaybe . take 1 . dropWhile (\(_, a) -> a < ra) . reverse $ accumAmounts
-        accumAmounts = snd $ foldl accumAmount (0, []) wordsWithAmounts
+        scaledRandom = floor (r * fromIntegral amount)
+```
+
+.pull-right[![Selecting next word](assets/ngrams_word_selection.jpg)]
+
+Great, that was easy! The next step is to select all words with their occurrence amounts *(the red numbers on the right)*:
+
+```haskell
+wordsWithAmounts =
+    map (\(w, Tree _ wAmount) -> (w, wAmount)) .
+        M.toList $ ngramsMap
+```
+
+We'll convert the `ngramsMap` to a list, and map it only "pulling out" the word `w` and its occurrence amount `wAmount`.
+
+*Note:* we're using a *tuple* here as our return type - `(w, wAmount)` - it contains both values.
+
+---
+## Generate next word
+
+.pull-right[![Selecting next word](assets/ngrams_word_selection.jpg)]
+
+Now that we have extracted words and their occurrence amounts, let's convert them to accumulative occurrence amounts *(the numbers in green on the right)*:
+
+```haskell
+accumAmounts = reverse . snd $
+    foldl accumAmount (0, []) wordsWithAmounts
+where accumAmount (lastAmount, ret) (w, wAmount) =
+    let newAmount = wAmount + lastAmount
+    in (newAmount, (w, newAmount) : ret)
+```
+
+This may not be an optimal solution, but it describes our intuitive solution in Haskell and allows us to run it.
+
+We'll foldl over the `wordsWithAmounts` with an integer accumulator, and replace the amount with the accumulated amount in the function output. Because prepending list is much faster, we'll prepend to our resulting list, thus reversing its order from the original `wordsWithAmounts`. To compensate for that, we'll reverse the output again before returning it.
+
+*Note:* we have introduced another syntax element in this example - `let ... in ...` - which is similar to using `where` in effect, but might look more natural in some expressions.
+
+---
+## Generate next word
+
+Now that we have built our "roulette" wheel, let's pick a value from it:
+
+```haskell
+pickByRand = take 1 . dropWhile (\(_, a) -> a < scaledRandom)
+```
+
+This was quite easy - drop all elements where the accumulator is smaller than our scaled random number, and take the next element (if it exists).
+
+Instead of defining a lambda function, we can also write it by composing curried functions, like this:
+
+```haskell
+pickByRand = take 1 . dropWhile ((< scaledRandom) . snd)
+```
+
+---
+## Generate next word
+
+Finally, the full function to generate the next word:
+
+```haskell
+generateNextWord (Tree ngramsMap amount) [] r =
+        fmap fst . listToMaybe . pickByRand $ accumAmounts
+    where
+        scaledRandom = floor (r * fromIntegral amount)
+        pickByRand = take 1 . dropWhile ((< scaledRandom) . snd)
+        accumAmounts = reverse . snd $ foldl accumAmount (0, []) wordsWithAmounts
             where accumAmount (lastAmount, ret) (w, wAmount) =
                     let newAmount = wAmount + lastAmount
                     in (newAmount, (w, newAmount) : ret)
-        wordsWithAmounts = map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
+        wordsWithAmounts =
+            map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
 ```
+
 ---
 ## Joining it all together
+
+Now that we have defined all required functions, let's coordinate them to run our application:
 
 ```haskell
 main :: IO ()
@@ -1040,10 +1258,12 @@ main = do
     putStrLn sample
 ```
 
+*Note:* retrieving random numbers is an `IO` action, so we are only allowed to call it in this context, however, we can ask here to retrieve an infinite stream of random numbers, and use it later in our functions (which we have done already).
+
 ---
 ## Example output
 
-**Trigrams sourced from *Project Gutenberg* books:**
+**Trigrams sourced from *Project Gutenberg* books (1355680 words):**
 
 - Ada Leverson: "Tenterhooks"
 - Bob Evans: "The Forest Monster of Oz"
@@ -1073,7 +1293,40 @@ With an air of indifference answered, 'A mere trifle Sir, not sensible in every 
 This prisoner is charged with condoning perjury in order to keep up on the stairs. "Now my cup of tea in an hour, and landing him safely in from all liability, costs and expenses, including legal fees. YOU AGREE THAT THE FOUNDATION, THE TRADEMARK OWNER, AND ANY DISTRIBUTOR UNDER THIS AGREEMENT WILL NOT BE LIABLE TO YOU FOR ACTUAL, DIRECT, INDIRECT, CONSEQUENTIAL, PUNITIVE OR INCIDENTAL DAMAGES EVEN IF YOU GIVE NOTICE OF THE BEHAVIOUR OF MARRIED PEOPLE As a rule in every direction; and if he means no harm, Bruce. I couldn't live with us." "Humph, I suppose you don't have to make inquiries of the founders of Jamestown Berkeley demands surrender of a mechanically or motor driven mechanism which causes police and denounced.
 
 ---
-## Quiz
+## Checkpoint
+
+We've looked at:
+
+- What is an n-gram and how can we use it?
+- Creating custom `Tree` types
+- Loading text to `NGrams` data and generating text from it
+- Typeclasses!
+
+.large[**If you have a question that you haven't asked yet - please do so now before we continue!**]
+
+---
+## Quiz time!
+
+- how to improve performance of generating the next word?
+
+---
+## Improved word selection
+
+Instead of building the accumulated sums, we can directly reduce the limited until we reach 0 or less - we'll know then that we have reached the word on our roulette and can return it immediately (instead of continuing to accumulate numbers):
+
+```haskell
+generateNextWord (Tree ngramsMap amount) [] r =
+        selectByAmountLim scaledRandom wordsWithAmounts
+    where
+        scaledRandom = floor (r * fromIntegral amount)
+        selectByAmountLim _ [] = Nothing
+        selectByAmountLim lim ((w, wAmount):ws)
+            | nextLim <= 0 = Just w
+            | otherwise = selectByAmountLim nextLim ws
+            where nextLim = lim - wAmount
+        wordsWithAmounts =
+            map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
+```
 
 ---
 # Thanks!

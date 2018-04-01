@@ -154,7 +154,11 @@ ol li:before {
   width: 99.99%;
 }
 p > img {
-  width: 99.99%;
+  width: 100%;
+  height: auto;
+}
+p .scaleImg60 img {
+  width: 60%;
 }
 .top-right {
   display: inline-block;

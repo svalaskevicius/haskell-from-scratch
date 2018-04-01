@@ -32,15 +32,9 @@ generateNextWord (Tree ngramsMap _) (w:ws) rand =
     where
         lookupWord w ngramsMap = fromMaybe emptyNGrams (M.lookup w ngramsMap)
 generateNextWord (Tree ngramsMap amount) [] r =
-        -- fmap fst . listToMaybe . pickByRand $ accumAmounts
         selectByAmountLim scaledRandom wordsWithAmounts
     where
         scaledRandom = floor (r * fromIntegral amount)
-        pickByRand = take 1 . dropWhile ((< scaledRandom) . snd)
-        accumAmounts = reverse . snd $ foldl accumAmount (0, []) wordsWithAmounts
-            where accumAmount (lastAmount, ret) (w, wAmount) =
-                    let newAmount = wAmount + lastAmount
-                    in (newAmount, (w, newAmount) : ret)
         selectByAmountLim _ [] = Nothing
         selectByAmountLim lim ((w, wAmount):ws)
             | nextLim <= 0 = Just w

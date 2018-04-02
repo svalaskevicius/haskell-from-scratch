@@ -1574,6 +1574,18 @@ computation = do
 ```
 
 ---
+## Checkpoint
+
+We've looked at:
+
+- Monoids
+- Functors
+- Applicative functors
+- Monads
+
+.large[**If you have a question that you haven't asked yet - please do so now!**]
+
+---
 # Thanks!
 
 .top-right[![Haskell logo](assets/haskell_logo.png)]

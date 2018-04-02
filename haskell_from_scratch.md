@@ -110,6 +110,22 @@ x :: MyType
 ```
 
 ---
+## Defining data types
+
+Types can also take type parameters:
+
+```haskell
+data  Maybe a  =  Nothing | Just a
+```
+
+This type `Maybe` defines a type that can either by `Nothing`, or `Just a`, where `a` is given when creating the `Maybe` type e.g.
+
+```haskell
+> :t Just 'a'
+Just 'a' :: Maybe Char
+```
+
+---
 ## List
 
 A data structure that keeps a list of elements of the same type.
@@ -1326,6 +1342,235 @@ generateNextWord (Tree ngramsMap amount) [] r =
             where nextLim = lim - wAmount
         wordsWithAmounts =
             map (\(w, Tree _ wAmount) -> (w, wAmount)) . M.toList $ ngramsMap
+```
+
+---
+# Functional programming concepts
+
+---
+## Monoids
+
+```haskell
+class Monoid a where
+    mempty  :: a
+    -- ^ Identity of 'mappend'
+    mappend :: a -> a -> a
+    -- ^ An associative operation
+    mconcat :: [a] -> a
+    mconcat = foldr mappend mempty
+```
+
+A monoid is a category where a given type has an operation that combines two elements of the same type to a third one. There also must by an identity element.
+
+For example, all integers are monoids when summing them (identity is `0`), e.g. `1 + 2 = 3`.
+
+Also, all integers are monoids when multiplying them, with identity `1`.
+
+---
+## Monoid laws
+
+- Identity law
+    - `mappend mempty x` = `x`
+    - `mappend x mempty` = `x`
+- Associative law
+    - `mappend x (mappend y z)` = `mappend (mappend x y) z`
+
+Following the summed integers example, the above can be seen as:
+- Identity law
+    - `0 + x` = `x`
+    - `x + 0` = `x`
+- Associative law
+    - `x + (y + z)` = `(x + y) + z`
+
+
+---
+## Monoid example
+
+Some haskell examples:
+
+```haskell
+Sum 4 <> Sum 3 <> Sum 2 <> Sum 1
+--    Sum{getSum = 10}
+```
+
+```haskell
+mconcat . (map Sum) $ [1..4]
+--    Sum{getSum = 10}
+```
+
+Or, let's combine `Sum` and `Maybe`:
+
+```haskell
+mconcat . (map $ Just . Sum) $ [1..4]
+--    Just (Sum{getSum = 10})
+```
+
+```haskell
+Just (Sum 10) <> Nothing <> Just (Sum 5)
+--    Just (Sum{getSum = 15})
+```
+
+
+---
+## Functors
+
+Functors allows mapping over them:
+
+```haskell
+class Functor f where
+    fmap :: (a -> b) -> f a -> f b
+```
+
+We have used it earlier when generating ngrams already:
+
+```haskell
+ngrams = fmap (take n) . tails . words
+```
+
+???
+
+- The functor is the computation context
+- fmap takes a function, and a value in the context
+- then fmap applies the function to an unwrapped value
+- and returns wrapped result
+
+---
+## Functor laws
+
+- identity:
+    - `fmap id` = `id`
+- composition:
+    - `fmap (p . q)` = `(fmap p) . (fmap q)`
+
+
+When the mapped function does not change the data, the full data structure must not change as well.
+
+When mapping a function over a data structure, we can choose to split it and map the second part later or vice versa.
+
+---
+## Example
+
+```haskell
+numbers = [1..10]
+strings = fmap show numbers
+-- ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+
+notSureIfNumber = Just 9
+notSureIfString = fmap show notSureIfNumber
+-- Just "9"
+
+notSureIfNumber = Nothing
+notSureIfString = fmap show notSureIfNumber
+-- Nothing
+```
+
+
+---
+## Applicative functors
+
+- applicative functor is a functor accepting wrapped functions
+- it's definition:
+
+```haskell
+class Functor f => Applicative f where
+pure :: a -> f a
+(<*>) :: f (a -> b) -> f a -> f b
+(*>) :: f a -> f b -> f b
+(<*) :: f a -> f b -> f a
+```
+
+It's simply a `Functor` with a function inside! For example:
+
+```haskell
+f a b = a + b
+y = fmap f (Just 1)
+y <*> (Just 2)
+```
+```
+Just 3
+> :t f
+f :: Num a => a -> a -> a
+> :t y
+y :: Num a => Maybe (a -> a)
+```
+
+
+???
+
+- same as functor, however allows the function to be wrapped too!
+- unwraps the function and the argument
+- "unwrapping" means to execute the context rules, take the value
+- applies the function
+- wraps the result back
+
+---
+## Applicative functor example
+
+- apply a "boxed" function to a "boxed" value:
+
+```haskell
+Just (+1) <*> Just 1                 -- Just 2
+```
+
+- apply a binary function:
+
+```haskell
+Just (+) <*> Just 1 <*> Just 4       -- Just 5
+```
+
+```haskell
+Just (+) <*> Just 1 <*> Nothing      -- Nothing
+```
+
+- a shorthand for fmap:
+
+```haskell
+(+) <$> Just 1 <*> Just 4            -- Just 5
+```
+
+
+---
+## Monads
+
+```haskell
+class  Monad m  where
+    return      :: a -> m a
+    (>>=)       :: m a -> (a -> m b) -> m b
+    (>>)        :: m a -> m b -> m b
+
+    m >> k      = m >>= \_ -> k
+```
+
+???
+
+- `return` - Inject a value into the monadic type.
+- `(>>=)` - Sequentially compose two actions, passing any value produced by the first as an argument to the second.
+- `(>>)` - Sequentially compose two actions, discarding any value produced by the first, like sequencing operators (such as the semicolon) in imperative languages.
+
+---
+## Monad laws
+
+- identity:
+    - `return a >>= k`  =  `k a`
+    - `m >>= return`  =  `m`
+- associativity:
+    - `m >>= (\x -> k x >>= h)`  =  `(m >>= k) >>= h`
+
+---
+## Maybe monad
+
+```haskell
+Just 1 >>= (\a -> return $ a+1)  -- or just "Just 1 >>= return . (+1)"
+-- Just 2
+```
+
+The `do` notation is just syntactic sugar over `>>=`!
+
+```haskell
+computation :: Maybe Int
+computation = do
+    a <- Just 1
+    return $ a + 1
 ```
 
 ---
